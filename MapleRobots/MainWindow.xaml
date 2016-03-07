@@ -8,7 +8,7 @@
         Title="MapleRobots" Height="600" Width="238.375" ResizeMode="NoResize">
     <Grid>
         <Label x:Name="label_BindWindow" Content="請先到目標視窗按'F8'鎖定視窗" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0"/>
-        <CheckBox x:Name="checkBox_PressKey" Content="開始/停止" HorizontalAlignment="Left" Margin="8,65,0,0" VerticalAlignment="Top" IsEnabled="False"/>
+        <CheckBox x:Name="checkBox_PressKey" Content="開始/停止" HorizontalAlignment="Left" Margin="8,65,0,0" VerticalAlignment="Top" IsEnabled="False" Checked="checkBox_PressKey_Checked" Unchecked="checkBox_PressKey_Unchecked"/>
         <TextBox x:Name="textBox_KeyAutoAttack" HorizontalAlignment="Left" Margin="83,51,0,0" TextWrapping="Wrap" Text="攻擊鍵" VerticalAlignment="Top" IsEnabled="False" Width="46" Height="22" KeyUp="textBox_KeyAutoAttack_KeyUp" IsReadOnlyCaretVisible="True"/>
         <TextBox x:Name="textBox_HotKeyAutoAttack" HorizontalAlignment="Left" Margin="134,51,0,0" TextWrapping="Wrap" Text="開關熱鍵" VerticalAlignment="Top" IsEnabled="False" Width="58" Height="22" KeyUp="textBox_HotKeyAutoAttack_KeyUp"/>
         <CheckBox x:Name="checkBox_UnlimitedAttack" Content="攻擊不停" HorizontalAlignment="Left" Margin="83,78,0,0" VerticalAlignment="Top" IsEnabled="False"/>
@@ -35,6 +35,7 @@
         <Label x:Name="label_MapID" Content="labelMapID" HorizontalAlignment="Left" Margin="8,463,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="textBox_HpValue" HorizontalAlignment="Left" Height="23" Margin="69,109,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="38" IsEnabled="False" TextChanged="textBox_HpValue_TextChanged"/>
         <TextBox x:Name="textBox_MpValue" HorizontalAlignment="Left" Height="23" Margin="69,135,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="38" IsEnabled="False" TextChanged="textBox_MpValue_TextChanged"/>
+        <Button x:Name="button" Content="Button" HorizontalAlignment="Left" Margin="10,540,0,0" VerticalAlignment="Top" Width="74" Click="button_Click"/>
 
     </Grid>
 

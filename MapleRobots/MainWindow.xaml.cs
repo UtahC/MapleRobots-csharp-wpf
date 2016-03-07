@@ -6,6 +6,7 @@ using System.Windows.Interop;
 using System.Threading;
 using System.Windows.Input;
 using System.Windows.Forms;
+using System.Diagnostics;
 
 namespace MapleRobots
 {
@@ -60,7 +61,7 @@ namespace MapleRobots
         private static ManualResetEvent mre_KeyPresser = new ManualResetEvent(true);
 
         private String KeyWantToPress, WindowTitle, HpPotKey, MpPotKey;
-        private Thread _threadOfMain, _threadOfKeyPresser;
+        private Thread _threadOfKeyPresser;
         private int intTemp, HpBelow, MpBelow;
         private double doubleTemp;
         private IntPtr WindowHwnd;  
@@ -152,6 +153,42 @@ namespace MapleRobots
         private void textBox_MpValue_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
             MpBelow = int.Parse(textBox_MpValue.Text);
+        }
+
+        private void button_Click(object sender, RoutedEventArgs e)
+        {
+            //RopeClimbing(-45, 1425, 1515, 40, 40);
+            //RopeClimbing(259, 1185, 1425, 70, -70);
+            //RopeClimbing(-205, 975, 1185, 40, 40);
+            /*  -147,91
+                -316,454
+                -446,470
+                -585,1032
+                -428,1120
+                -316,1576*/
+            GoToLocationInWater(-446, 500, 20, true, false);
+            Debug.WriteLine("到達第 1 點");
+            GoToLocationInWater(-585, 1032, 20, true, false);
+            Debug.WriteLine("到達第 2 點");
+            GoToLocationInWater(-428, 1220, 20, true, false);
+            Debug.WriteLine("到達第 3 點");
+            GoToLocationInWater(-316, 1596, 20, true, false);
+            Debug.WriteLine("到達第 4 點");
+            Debug.WriteLine("arrived.");
+        }
+        private void checkBox_PressKey_Checked(object sender, RoutedEventArgs e)
+        {
+            if (_threadOfKeyPresser == null)
+            {
+                _threadOfKeyPresser = new Thread(KeyPresser);
+                _threadOfKeyPresser.Start();
+            }
+            mre_KeyPresser.Set();
+        }
+
+        private void checkBox_PressKey_Unchecked(object sender, RoutedEventArgs e)
+        {
+            mre_KeyPresser.Reset();
         }
 
         private void timer1_Tick(object sender, EventArgs e)
@@ -263,7 +300,148 @@ namespace MapleRobots
             }
         }
 
-        
+        public int Distance(int x1, int y1, int x2, int y2)
+        {
+            return Math.Abs(x1 - x2) + Math.Abs(y1 - y2);
+        }
+
+        public void GoToNearX(int coorX, int leftDistance, int rightDistance)
+        {
+            int CharacterX = Hack.ReadInt(CharacterXBaseAdr, CharacterXOffset, WindowTitle);
+            if (Distance(CharacterX, 0, coorX - 60, 0) < Distance(CharacterX, 0, coorX + 60, 0))
+            {
+                GoToX(coorX - leftDistance, 8, true, false);
+                Hack.KeyDown(WindowHwnd, "Right");
+                Thread.Sleep(1);
+            }
+            else
+            {
+                GoToX(coorX + rightDistance, 8, true, false);
+                Hack.KeyDown(WindowHwnd, "Left");
+                Thread.Sleep(1);
+            }
+        }
+
+        public void GoToLocationInWater(int coorX, int coorY, int deviation, bool isTeleport, bool isWithUp)
+        {
+            int CharacterX, CharacterY;
+            int leftBoundary = coorX - deviation;
+            int rightBoundary = coorX + deviation;
+            int upBoundary = coorY - deviation * 2;
+            int downBoundary = coorY;
+            while (true)
+            {
+                CharacterX = Hack.ReadInt(CharacterXBaseAdr, CharacterXOffset, WindowTitle);
+                CharacterY = Hack.ReadInt(CharacterYBaseAdr, CharacterYOffset, WindowTitle);
+                Debug.WriteLine("trying to get " + coorX + " , " + coorY + " and now at " + CharacterX + " , " + CharacterY);
+                if (CharacterX >= leftBoundary && CharacterX <= rightBoundary && CharacterY >= upBoundary && CharacterY <= downBoundary)
+                {
+                    Hack.KeyUp(WindowHwnd, "Up");
+                    Hack.KeyUp(WindowHwnd, "Down");
+                    Hack.KeyUp(WindowHwnd, "Left");
+                    Hack.KeyUp(WindowHwnd, "Right");
+                    Hack.KeyUp(WindowHwnd, "Menu");
+                    Debug.WriteLine("arrive");
+                    return;
+                }
+                else if (CharacterX < leftBoundary || CharacterX > rightBoundary)
+                {
+                    GoToX(coorX, deviation, isTeleport, isWithUp);
+
+                }
+                else if (CharacterY > downBoundary + 20)
+                {
+                    Hack.KeyUp(WindowHwnd, "Up");
+                    Hack.KeyUp(WindowHwnd, "Down");
+                    Hack.KeyPress(WindowHwnd, "Menu");
+                    //Debug.WriteLine("往上");
+                }
+                else if (CharacterY < upBoundary - 20)
+                {
+                    Hack.KeyUp(WindowHwnd, "Up");
+                    Hack.KeyUp(WindowHwnd, "Down");
+                    Hack.KeyDown(WindowHwnd, "Down");
+                    Hack.KeyPress(WindowHwnd, "Menu");
+                    //Debug.WriteLine("往下");
+                }
+
+            }
+
+        }
+
+        public void GoToX(int coorX, int deviation, bool isTeleport, bool isWithUp)
+        {
+            int CharacterX;
+            int leftBoundary = coorX - deviation;
+            int rightBoundary = coorX + deviation;
+            int leftFarBoundary = coorX - 150;
+            int rightFarBoundary = coorX + 150;
+            while (true)
+            {
+                CharacterX = Hack.ReadInt(CharacterXBaseAdr, CharacterXOffset, WindowTitle);
+                if (CharacterX >= leftBoundary && CharacterX <= rightBoundary)
+                {
+                    Hack.KeyUp(WindowHwnd, "Up");
+                    Hack.KeyUp(WindowHwnd, "Left");
+                    Hack.KeyUp(WindowHwnd, "Right");
+                    return;
+                }
+                else if (CharacterX < leftFarBoundary)
+                {
+                    Hack.KeyUp(WindowHwnd, "Left");
+                    if (isTeleport)
+                        Hack.KeyPress(WindowHwnd, "ShiftKey");//可自訂
+                    Hack.KeyDown(WindowHwnd, "Right");
+                }
+                else if (CharacterX > rightFarBoundary)
+                {
+                    Hack.KeyUp(WindowHwnd, "Right");
+                    if (isTeleport)
+                        Hack.KeyPress(WindowHwnd, "ShiftKey");//可自訂
+                    Hack.KeyDown(WindowHwnd, "Left");
+                }
+                else if (CharacterX > leftFarBoundary && CharacterX < leftBoundary)
+                {
+                    Hack.KeyUp(WindowHwnd, "Left");
+                    Hack.KeyDown(WindowHwnd, "Right");
+                    if (isWithUp)
+                        Hack.KeyDown(WindowHwnd, "Up");
+                }
+                else if (CharacterX > rightBoundary && CharacterX < rightFarBoundary)
+                {
+                    Hack.KeyUp(WindowHwnd, "Right");
+                    Hack.KeyDown(WindowHwnd, "Left");
+                    if (isWithUp)
+                        Hack.KeyDown(WindowHwnd, "Up");
+                }
+            }
+        }
+
+        public void RopeClimbing(int coorX, int topBoundary, int floorY, int leftDistance, int rightDistance)
+        {
+            int CharacterX, CharacterY, CharacterStatus;
+            GoToNearX(coorX, leftDistance, rightDistance);
+            Hack.KeyPress(WindowHwnd, "Menu");
+            GoToX(coorX, 4, true, true);
+            while (true)
+            {
+                CharacterX = Hack.ReadInt(CharacterXBaseAdr, CharacterXOffset, WindowTitle);
+                CharacterY = Hack.ReadInt(CharacterYBaseAdr, CharacterYOffset, WindowTitle);
+                CharacterStatus = Hack.ReadInt(CharacterStatusBaseAdr, CharacterStatusOffset, WindowTitle);
+                if (CharacterY <= topBoundary && CharacterStatus != 14 && CharacterStatus != 15)
+                {
+                    Hack.KeyUp(WindowHwnd, "Up");
+                    Hack.KeyUp(WindowHwnd, "Right");
+                    Hack.KeyUp(WindowHwnd, "Left");
+                    return;
+                }
+                else if (CharacterX >= coorX - 5 && CharacterX <= coorX + 5 && CharacterY <= floorY)
+                    Hack.KeyDown(WindowHwnd, "Up");
+                else
+                    RopeClimbing(coorX, topBoundary, floorY, leftDistance, rightDistance);
+            }
+        }
+
 
     }
 }
