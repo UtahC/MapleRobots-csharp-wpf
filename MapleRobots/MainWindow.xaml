@@ -5,10 +5,37 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MapleRobots"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
-        <Grid>
-            <Label x:Name="label" Content="Label" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0"/>
+        Title="MapleRobots" Height="600" Width="238.375" ResizeMode="NoResize">
+    <Grid>
+        <Label x:Name="label_BindWindow" Content="請先到目標視窗按'F8'鎖定視窗" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0"/>
+        <CheckBox x:Name="checkBox_PressKey" Content="開始/停止" HorizontalAlignment="Left" Margin="8,65,0,0" VerticalAlignment="Top" IsEnabled="False"/>
+        <TextBox x:Name="textBox_KeyAutoAttack" HorizontalAlignment="Left" Margin="83,51,0,0" TextWrapping="Wrap" Text="攻擊鍵" VerticalAlignment="Top" IsEnabled="False" Width="46" Height="22" KeyUp="textBox_KeyAutoAttack_KeyUp" IsReadOnlyCaretVisible="True"/>
+        <TextBox x:Name="textBox_HotKeyAutoAttack" HorizontalAlignment="Left" Margin="134,51,0,0" TextWrapping="Wrap" Text="開關熱鍵" VerticalAlignment="Top" IsEnabled="False" Width="58" Height="22" KeyUp="textBox_HotKeyAutoAttack_KeyUp"/>
+        <CheckBox x:Name="checkBox_UnlimitedAttack" Content="攻擊不停" HorizontalAlignment="Left" Margin="83,78,0,0" VerticalAlignment="Top" IsEnabled="False"/>
+        <GridSplitter x:Name="gridSplitter" HorizontalAlignment="Stretch" Height="5" Margin="-6,36,0,0" VerticalAlignment="Top" Width="208"/>
+        <GridSplitter x:Name="gridSplitter1" HorizontalAlignment="Stretch" Height="5" Margin="-6,99,0,0" VerticalAlignment="Top" Width="208"/>
+        <GridSplitter x:Name="gridSplitter2" Height="5" Margin="8,167,16,0" VerticalAlignment="Top" HorizontalAlignment="Stretch" Width="208"/>
+        <Label x:Name="label_HP1" Content="當HP值&lt;" HorizontalAlignment="Left" Margin="10,109,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="label_MP1" Content="當MP值&lt;" HorizontalAlignment="Left" Margin="10,135,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="label_HP2" Content="使用" HorizontalAlignment="Left" Margin="104,109,0,0" VerticalAlignment="Top" Height="26"/>
+        <TextBox x:Name="textBox_HotKeyHp" HorizontalAlignment="Left" Margin="138,109,0,0" TextWrapping="Wrap" Text="補血熱鍵" VerticalAlignment="Top" IsEnabled="False" Height="22" KeyUp="textBox_HotKeyHp_KeyUp"/>
+        <Label x:Name="label_MP2" Content="使用" HorizontalAlignment="Left" Margin="104,136,0,0" VerticalAlignment="Top" Height="26"/>
+        <TextBox x:Name="textBox_HotKeyMp" HorizontalAlignment="Left" Margin="138,136,0,0" TextWrapping="Wrap" Text="補魔熱鍵" VerticalAlignment="Top" IsEnabled="False" Height="22" KeyUp="textBox_HotKeyMp_KeyUp"/>
+        <Label x:Name="label_AttackCount" HorizontalAlignment="Left" Margin="10,177,0,0" VerticalAlignment="Top" Content="labelAttackCount"/>
+        <Label x:Name="label_HpAlert" Content="labelHpAlert" Margin="10,203,122,343" Height="26" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <Label x:Name="label_MpAlert" Content="labelMpAlert" HorizontalAlignment="Left" Margin="10,229,0,317" Height="26" VerticalAlignment="Top"/>
+        <Label x:Name="label_Exp" Content="labelExp" HorizontalAlignment="Left" Margin="10,307,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="label_HpValue" Content="labelHpValue" Margin="10,255,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <Label x:Name="label_MpValue" Content="labelMpValue" HorizontalAlignment="Left" Margin="10,281,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="label_PlayerCount" Content="labelPlayerCount" HorizontalAlignment="Left" Margin="9,333,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="label_MobCount" Content="labelMobCount" HorizontalAlignment="Left" Margin="9,359,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="label_CharacterStates" Content="labelCharacterStates" HorizontalAlignment="Left" Margin="8,385,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="label_CharacterX" Content="labelCharacterX" HorizontalAlignment="Left" Margin="8,411,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="label_CharacterY" Content="labelCharacterY" HorizontalAlignment="Left" Margin="8,437,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="label_MapID" Content="labelMapID" HorizontalAlignment="Left" Margin="8,463,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="textBox_HpValue" HorizontalAlignment="Left" Height="23" Margin="69,109,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="38" IsEnabled="False" TextChanged="textBox_HpValue_TextChanged"/>
+        <TextBox x:Name="textBox_MpValue" HorizontalAlignment="Left" Height="23" Margin="69,135,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="38" IsEnabled="False" TextChanged="textBox_MpValue_TextChanged"/>
 
-        </Grid>
+    </Grid>
 
 </Window>

@@ -2,7 +2,8 @@
 using System.Text;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Windows.Input;
+using System.Windows.Forms;
+
 namespace MapleRobots
 {
     public abstract class Hack
@@ -108,11 +109,13 @@ namespace MapleRobots
                 IntPtr hProcess = OpenProcess(0x1F0FFF, false, GetPidByProcessName(processName));
                 ReadProcessMemory(hProcess, (IntPtr)baseAddress, byteAddress, 4, IntPtr.Zero); //将制定内存中的值读入缓冲区
                 CloseHandle(hProcess);
-                return Marshal.ReadInt32(byteAddress);
+                int value = Marshal.ReadInt32(byteAddress);
+                return value;
             }
-            catch
+            catch(AccessViolationException e)
             {
-                return 0;
+                System.Diagnostics.Debug.Print(e.ToString());
+                return -1;
             }
         }
         public static double ReadMemoryValueDouble(int baseAddress, string processName)
@@ -130,7 +133,7 @@ namespace MapleRobots
             }
             catch
             {
-                return 0;
+                return -1;
             }
         }
         //将值写入指定内存地址中
@@ -143,22 +146,37 @@ namespace MapleRobots
         public static int ReadInt(int baseAddress, int offset, string processName)
         {
             int address = ReadMemoryValue(baseAddress, processName);
-            address += offset;
-            int value = ReadMemoryValue(address, processName);
-            return value;
+            if (address >= 0)
+            {
+                address += offset;
+                int value = ReadMemoryValue(address, processName);
+                return value;
+            }
+            else
+                return -1;
         }
         public static double ReadDouble(int baseAddress, int offset, string processName)
         {
             int address = ReadMemoryValue(baseAddress, processName);
-            address += offset;
-            double value = ReadMemoryValueDouble(address, processName);
-            return value;
+            if (address >= 0)
+            {
+                address += offset;
+                double value = ReadMemoryValueDouble(address, processName);
+                return value;
+            }
+            else
+                return -1;
         }
         public static void WriteInt(int baseAddress, int offset, string processName, int value)
         {
             int address = ReadMemoryValue(baseAddress, processName);
-            address += offset;
-            WriteMemoryValue(address, processName, value);
+            if (address >= 0)
+            {
+                address += offset;
+                WriteMemoryValue(address, processName, value);
+            }
+            else
+                return ;
         }
         public static IntPtr GetForegroundWindowHwnd()
         {
@@ -179,7 +197,7 @@ namespace MapleRobots
         }
         public static void KeyPress(IntPtr hwnd, string keyString)
         {
-            Key key;
+            Keys key;
             Enum.TryParse(keyString, out key);
             int keyCode = key.GetHashCode();
             PostMessage(hwnd, WM_KEYDOWN, (IntPtr)keyCode, MakeKeyLparam(keyCode, WM_KEYDOWN));
@@ -193,7 +211,7 @@ namespace MapleRobots
         }
         public static void KeyDown(IntPtr hwnd, string keyString)
         {
-            Key key;
+            Keys key;
             Enum.TryParse(keyString, out key);
             int keyCode = key.GetHashCode();
             if (keyString == "Up" || keyString == "Down" || keyString == "Left" || keyString == "Right")
@@ -208,7 +226,7 @@ namespace MapleRobots
         }
         public static void KeyUp(IntPtr hwnd, string keyString)
         {
-            Key key;
+            Keys key;
             Enum.TryParse(keyString, out key);
             int keyCode = key.GetHashCode();
             if (keyString == "Up" || keyString == "Down" || keyString == "Left" || keyString == "Right")
