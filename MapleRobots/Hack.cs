@@ -190,10 +190,10 @@ namespace MapleRobots
             GetWindowText(handle, stringBuilder, stringBuilder.Capacity);
             return stringBuilder.ToString();
         }
-        public static void KeyPress(IntPtr hwnd, int keyCode)
+        public static void KeyPress(IntPtr hwnd, Keys key)
         {
-            SendMessage(hwnd, WM_KEYDOWN, (IntPtr)keyCode, IntPtr.Zero);
-            SendMessage(hwnd, WM_KEYUP, (IntPtr)keyCode, IntPtr.Zero); 
+            PostMessage(hwnd, WM_KEYDOWN, (IntPtr)key, MakeKeyLparam((int)key, WM_KEYDOWN));
+            PostMessage(hwnd, WM_KEYUP, (IntPtr)key, MakeKeyLparam((int)key, WM_KEYDOWN)); 
         }
         public static void KeyPress(IntPtr hwnd, string keyString)
         {
@@ -205,9 +205,11 @@ namespace MapleRobots
             PostMessage(hwnd, WM_KEYUP, (IntPtr)keyCode, MakeKeyLparam(keyCode, WM_KEYUP));
             //SendMessage(hwnd, WM_KEYUP, (IntPtr)keyCode, IntPtr.Zero);
         }
-        public static void KeyDown(IntPtr hwnd, int keyCode)
+        public static void KeyDown(IntPtr hwnd, Keys key)
         {
-            SendMessage(hwnd, WM_KEYDOWN, (IntPtr)keyCode, IntPtr.Zero);
+            if (key.ToString() == "Up" || key.ToString() == "Down" || key.ToString() == "Left" || key.ToString() == "Right")
+                keybd_event((byte)key, 0, 0, 0);
+            PostMessage(hwnd, WM_KEYDOWN, (IntPtr)key, MakeKeyLparam((int)key, WM_KEYDOWN));
         }
         public static void KeyDown(IntPtr hwnd, string keyString)
         {
@@ -219,10 +221,11 @@ namespace MapleRobots
             else
                 PostMessage(hwnd, WM_KEYDOWN, (IntPtr)keyCode, MakeKeyLparam(keyCode, WM_KEYDOWN));
         }
-        public static void KeyUp(IntPtr hwnd, int keyCode)
+        public static void KeyUp(IntPtr hwnd, Keys key)
         {
-            SendMessage(hwnd, WM_KEYDOWN, (IntPtr)keyCode, IntPtr.Zero);
-            SendMessage(hwnd, WM_KEYUP, (IntPtr)keyCode, IntPtr.Zero);
+            if (key.ToString() == "Up" || key.ToString() == "Down" || key.ToString() == "Left" || key.ToString() == "Right")
+                keybd_event((byte)key, 0, 2, 0);
+            PostMessage(hwnd, WM_KEYUP, (IntPtr)key, MakeKeyLparam((int)key, WM_KEYUP));
         }
         public static void KeyUp(IntPtr hwnd, string keyString)
         {
