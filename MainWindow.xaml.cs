@@ -10,6 +10,11 @@ using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.IO;
+using System.Net.Sockets;
+using System.Net;
+using System.Net.NetworkInformation;
+using System.Data.SqlClient;
+using System.Collections.Generic;
 
 namespace MapleRobots
 {
@@ -52,6 +57,7 @@ namespace MapleRobots
         private const string CharacterYAdr = "[00979268]+5A0";
         private const string MapIDAdr = "[00979268]+62C";
         private const string BreathAdr = "[00979358]+528";
+        private const string CharacterNameAdr = "[0097E4B0]+4";
 
 
         private static ManualResetEvent mre_BottingGoby = new ManualResetEvent(false);
@@ -64,6 +70,7 @@ namespace MapleRobots
         private int WindowHwnd;  
         private uint RunTimer = 0;
         private string filename = "data.ini";
+        private string InGameName;
         private QfDm dm, dmBotting;
 
 
@@ -281,17 +288,64 @@ namespace MapleRobots
 
         private void timer2_Tick(object sender, EventArgs e)
         {
-            if (dm.DM.ReadInt(WindowHwnd, BreathAdr, 0) > 0)
+            //System.Windows.MessageBox.Show("start");
+            int point = GetPointFromDB(InGameName);
+            labelPoint.Content = "目前點數: " + point;
+        }
+
+        private int GetPointFromDB (string IGN)
+        {
+            using (var conn = new SqlConnection("Server=tcp:MapleRobots.no-ip.org,1433;Database=MapleRobots;User ID=sa;Password=bstking9g6k;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;"))
             {
-                RunTimer += 1;
-                //if (RunTimer > 3600)
-                //label16.Text = RunTimer / 3600 + ":" + RunTimer % 3600 / 60 + ":" + RunTimer % 60;
-                //else if (RunTimer > 60)
-                //label16.Text = RunTimer / 60 + ":" + RunTimer % 60;
-                //else
-                //label16.Text = RunTimer.ToString();
+                int userPoint; 
+                int deltaPoint = -1;
+                var cmd = conn.CreateCommand();
+                NetworkInterface[] nics = NetworkInterface.GetAllNetworkInterfaces();
+                List<string> macList = new List<string>();
+                foreach (var nic in nics)
+                {
+                    // 因為電腦中可能有很多的網卡(包含虛擬的網卡)，
+                    // 我只需要 Ethernet 網卡的 MAC
+                    if (nic.NetworkInterfaceType == NetworkInterfaceType.Ethernet)
+                    {
+                        macList.Add(nic.GetPhysicalAddress().ToString());
+                    }
+                }
+                IPHostEntry host;
+                string localIP = "";
+                host = Dns.GetHostEntry(Dns.GetHostName());
+                foreach (IPAddress ip in host.AddressList)
+                {
+                    if (ip.AddressFamily == AddressFamily.InterNetwork)
+                    {
+                        localIP = ip.ToString();
+                    }
+                }
+                conn.Open();
+                cmd.CommandText = @"
+                SELECT Point
+                FROM dbo.RobotsUser
+                WHERE InGameName = @InGameName;";
+                cmd.Parameters.AddWithValue("@InGameName", IGN);
+                userPoint = (int)cmd.ExecuteScalar();
+                int updatedUserPoint = userPoint + deltaPoint;
+                cmd.CommandText = @"
+                INSERT INTO dbo.RobotsUserLog ( InGameName, DeltaPoint, Point, Time ,MAC, IP)
+                OUTPUT INSERTED.Point
+                VALUES (@InGameName, @DeltaPoint, @updatedPoint, CURRENT_TIMESTAMP, @MAC, @IP);
+                UPDATE dbo.RobotsUser
+                SET Point = @updatedPoint, LastestTime = CURRENT_TIMESTAMP
+                WHERE InGameName = @InGameName;";
+                cmd.Parameters.AddWithValue("@DeltaPoint", deltaPoint);
+                cmd.Parameters.AddWithValue("@updatedPoint", updatedUserPoint);
+                cmd.Parameters.AddWithValue("@MAC", macList[0].ToString());
+                cmd.Parameters.AddWithValue("@IP", localIP);
+                userPoint = (int)cmd.ExecuteScalar();
+
+                return updatedUserPoint;
             }
         }
+    
 
         private void BindWindow()
         {
@@ -309,6 +363,9 @@ namespace MapleRobots
                 System.Windows.MessageBox.Show("bind failed");
                 return;
             }
+
+            InGameName = dm.DM.ReadString(WindowHwnd, CharacterNameAdr, 0, 20);
+
             label_BindWindow.Content = ("已綁定視窗: " + WindowTitle);
             checkBox_PressKey.IsEnabled = true;
 
@@ -317,7 +374,7 @@ namespace MapleRobots
             timer1.Tick += new EventHandler(timer1_Tick);
             timer1.Start();
             System.Windows.Forms.Timer timer2 = new System.Windows.Forms.Timer();
-            timer2.Interval = 1000;
+            timer2.Interval = 10000;
             timer2.Tick += new EventHandler(timer2_Tick);
             timer2.Start();
 
