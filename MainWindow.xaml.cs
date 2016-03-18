@@ -15,6 +15,7 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Data.SqlClient;
 using System.Collections.Generic;
+using System.Media;
 
 namespace MapleRobots
 {
@@ -56,33 +57,36 @@ namespace MapleRobots
         internal static string CharacterXAdr { get { return "[00979268]+59C"; } }
         internal static string CharacterYAdr { get { return "[00979268]+5A0"; } }
         internal static string MapIDAdr { get { return "[00979268]+62C"; } }
-        internal static string BreathAdr { get { return "[00979358]+528"; } }
+        internal static string BreathAdr { get { return "[00978358]+528"; } }
         internal static string CharacterNameAdr { get { return "[0097E4B0]+4"; } }
         internal static string DoorXAdr { get { return "0097EF4C"; } }
         internal static string DoorYAdr { get { return "0097EF50"; } }
         internal static Keys KeyWantToPress { get; set; }
         internal static int WindowHwnd { get; set; }
         internal static bool isBind { get; set; }
+
+        internal static int delayComboKey1, delayComboKey2;
+        internal static Keys keyTeleport, keyAttack, keyDoor, keyPickUp, keySkill, keyCombo1, keyCombo2, keyJump;
+        internal static string InGameName;
+        internal static WindowHotKey windowhotkey;
         private String WindowTitle;
-        private Keys HpPotKey, MpPotKey, HotKeyAutoAttack;
-        private Thread _threadOfKeyPresser, _threadOfBotting, _threadOfPickUp;
+        private Keys HpPotKey, MpPotKey, HotKeyAutoAttack, HotKeyBotting;
+        private Thread _threadOfKeyPresser, _threadOfBotting, _threadOfPickUp, _threadOfAlarmForPlayer;
         private int HpBelow, MpBelow, dm_ret;
-        private uint RunTimer = 0;
         private string filename = "data.ini";
-        private string InGameName;
         private QfDm dm;
         Botting botting;
 
-        private static ManualResetEvent mre_BottingGoby = new ManualResetEvent(false);
 
+        private ManualResetEvent mre_AlarmForPlayer = new ManualResetEvent(true);
         System.Windows.Forms.Timer timer2 = new System.Windows.Forms.Timer();
 
 
         public MainWindow()
         {
             InitializeComponent();
-            WindowReadData windowreaddata = new WindowReadData();
-            windowreaddata.Show();
+            //WindowReadData windowreaddata = new WindowReadData();
+            //windowreaddata.Show();
         }
 
         private IntPtr _windowHandle;
@@ -122,6 +126,17 @@ namespace MapleRobots
                             }
                             handled = true;
                             break;
+                        case HOTKEY_ID + 1:
+                            vkey = (((int)lParam >> 16) & 0xFFFF);
+                            if (vkey == (int)HotKeyBotting)
+                            {
+                                if ((bool)checkBox_Botting.IsChecked)
+                                    checkBox_Botting.IsChecked = false;
+                                else
+                                    checkBox_Botting.IsChecked = true;
+                            }
+                            handled = true;
+                            break;
                     }
                     break;
             }
@@ -137,14 +152,23 @@ namespace MapleRobots
                 _threadOfBotting.Abort();
             if (_threadOfPickUp != null && _threadOfPickUp.IsAlive)
                 _threadOfPickUp.Abort();
+            if (_threadOfAlarmForPlayer != null && _threadOfAlarmForPlayer.IsAlive)
+                _threadOfAlarmForPlayer.Abort();
+            if (Botting._threadOfTraining != null && Botting._threadOfTraining.IsAlive)
+                Botting._threadOfTraining.Abort();
+            if (windowhotkey != null)
+                windowhotkey.Close();
+            
             WritePrivateProfileString(InGameName, "KeyAutoAttack", textBox_KeyAutoAttack.Text, ".\\" + filename);
             WritePrivateProfileString(InGameName, "HotKeyAutoAttack", textBox_HotKeyAutoAttack.Text, ".\\" + filename);
+            WritePrivateProfileString(InGameName, "HotKeyBotting", textBox_HotKeyBotting.Text, ".\\" + filename);
             WritePrivateProfileString(InGameName, "HpValue", textBox_HpValue.Text, ".\\" + filename);
             WritePrivateProfileString(InGameName, "HotKeyHp", textBox_HotKeyHp.Text, ".\\" + filename);
             WritePrivateProfileString(InGameName, "MpValue", textBox_MpValue.Text, ".\\" + filename);
             WritePrivateProfileString(InGameName, "HotKeyMp", textBox_HotKeyMp.Text, ".\\" + filename);
             _source.RemoveHook(HwndHook);
             UnregisterHotKey(_windowHandle, HOTKEY_ID);
+            UnregisterHotKey(_windowHandle, HOTKEY_ID + 1);
             base.OnClosed(e);
         }
 
@@ -158,7 +182,10 @@ namespace MapleRobots
 
         private void textBox_KeyAutoAttack_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            KeyWantToPress = (Keys)KeyInterop.VirtualKeyFromKey(e.Key);
+            if (e.Key == System.Windows.Input.Key.System)
+                KeyWantToPress = Keys.Menu;
+            else
+                KeyWantToPress = (Keys)KeyInterop.VirtualKeyFromKey(e.Key);
             botting.KeyWantToPress = KeyWantToPress;
             textBox_KeyAutoAttack.Text = KeyWantToPress.ToString();
         }
@@ -167,6 +194,29 @@ namespace MapleRobots
         {
             HpPotKey = (Keys)KeyInterop.VirtualKeyFromKey(e.Key);
             textBox_HotKeyHp.Text = HpPotKey.ToString();
+        }
+
+        private void comboBox_Loaded(object sender, RoutedEventArgs e)
+        {
+            List <string> data = new List <string> ();
+            data.Add("Goby");
+            comboBox.ItemsSource = data;
+            // Make the first item selected.
+            comboBox.SelectedIndex = 0;
+        }
+
+        private void textBox_HotKeyBotting_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            HotKeyBotting = (Keys)KeyInterop.VirtualKeyFromKey(e.Key);
+            textBox_HotKeyBotting.Text = HotKeyBotting.ToString();
+            //UnregisterHotKey(_windowHandle, HOTKEY_ID);
+            RegisterHotKey(_windowHandle, HOTKEY_ID + 1, MOD_NONE, (uint)HotKeyBotting);
+        }
+
+        private void button_keySetting_Click(object sender, RoutedEventArgs e)
+        {
+            windowhotkey = new WindowHotKey();
+            windowhotkey.Show();
         }
 
         private void textBox_HotKeyMp_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
@@ -183,7 +233,7 @@ namespace MapleRobots
             }
             catch
             {
-                System.Windows.MessageBox.Show("請輸入數字");
+                System.Windows.Forms.MessageBox.Show("請輸入數字");
             }
         }
 
@@ -195,7 +245,7 @@ namespace MapleRobots
             }
             catch
             {
-                System.Windows.MessageBox.Show("請輸入數字");
+                System.Windows.Forms.MessageBox.Show("請輸入數字");
             }
         }
 
@@ -229,24 +279,50 @@ namespace MapleRobots
             _threadOfPickUp = null;
         }
 
-        private void checkBox_Checked(object sender, RoutedEventArgs e)
+        private void checkBox_Botting_Checked(object sender, RoutedEventArgs e)
         {
-            if (_threadOfBotting == null && getPointFromDB(InGameName, 0) > 0)
+            if (keyTeleport == Keys.None || keyPickUp == Keys.None || keyAttack == Keys.None
+                || keyJump == Keys.None || windowhotkey != null)
             {
-                
-                timer2.Start();
-                _threadOfBotting = new Thread(Botting.bottingGoby);
-                _threadOfBotting.Start();
+                checkBox_Botting.IsChecked = false;
+                System.Windows.Forms.MessageBox.Show("請先完成設定熱鍵");
+                return;
             }
             else
             {
-                int point = getPointFromDB(InGameName, 0);
-                labelPoint.Content = "目前點數: " + point;
-                System.Windows.MessageBox.Show("點數不足");
-                checkBox.IsChecked = false;
+                if (_threadOfBotting == null && getPointFromDB(InGameName, 0) > 0)
+                {
+                    timer2.Start();
+                    if (comboBox.SelectedIndex == -1)
+                    {
+                        timer2.Stop();
+                        checkBox_Botting.IsChecked = false;
+                        System.Windows.Forms.MessageBox.Show("請先選擇練功地點");
+                        return;
+                    }
+                    else if (comboBox.SelectedIndex == 0)
+                    {
+                        _threadOfBotting = new Thread(Botting.bottingGoby);
+                    }
+                    _threadOfBotting.Start();
+                    button_keySetting.IsEnabled = false;
+                    comboBox.IsReadOnly = true;
+                }
+                else
+                {
+                    int point = getPointFromDB(InGameName, 0);
+                    labelPoint.Content = "點數: " + point;
+                    System.Windows.Forms.MessageBox.Show("點數不足");
+                    checkBox_Botting.IsChecked = false;
+                    checkBox_Botting.IsEnabled = false;
+                    textBox_HotKeyBotting.IsEnabled = false;
+                    button_keySetting.IsEnabled = false;
+                    comboBox.IsEnabled = false;
+                    return;
+                }
             }
         }
-        private void checkBox_Unchecked(object sender, RoutedEventArgs e)
+        private void checkBox_Botting_Unchecked(object sender, RoutedEventArgs e)
         {
             if (_threadOfBotting != null)
             {
@@ -259,20 +335,45 @@ namespace MapleRobots
                 Botting._threadOfTraining = null;
             }
             timer2.Stop();
+            button_keySetting.IsEnabled = true;
+            comboBox.IsReadOnly = false;
         }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
             if ((bool)checkBox_UnlimitedAttack.IsChecked)
                 dm_ret = dm.DM.WriteInt(WindowHwnd, AttackCountAdr, 0, 0);
-            dm_ret = dm.DM.WriteInt(WindowHwnd, HpAlarmAdr, 0, 20);
-            dm_ret = dm.DM.WriteInt(WindowHwnd, MpAlarmAdr, 0, 20);
-            if (HpPotKey != Keys.None && HpBelow > 0)
-                if (dm.DM.ReadInt(WindowHwnd, HpValueAdr, 0) < HpBelow)
-                    Hack.KeyPress((IntPtr)WindowHwnd, HpPotKey);
-            if (MpPotKey != Keys.None && MpBelow > 0)
-                if (dm.DM.ReadInt(WindowHwnd, MpValueAdr, 0) < MpBelow)
-                    Hack.KeyPress((IntPtr)WindowHwnd, MpPotKey);
+            if ((bool)checkBox_Potions.IsChecked)
+            {
+                dm_ret = dm.DM.WriteInt(WindowHwnd, HpAlarmAdr, 0, 20);
+                dm_ret = dm.DM.WriteInt(WindowHwnd, MpAlarmAdr, 0, 20);
+                if (HpPotKey != Keys.None && HpBelow > 0)
+                    if (dm.DM.ReadInt(WindowHwnd, HpValueAdr, 0) < HpBelow)
+                        Hack.KeyPress((IntPtr)WindowHwnd, HpPotKey);
+                if (MpPotKey != Keys.None && MpBelow > 0)
+                    if (dm.DM.ReadInt(WindowHwnd, MpValueAdr, 0) < MpBelow)
+                        Hack.KeyPress((IntPtr)WindowHwnd, MpPotKey);
+            }
+            if ((bool)checkBox_NoBreath.IsChecked)
+                dm_ret = dm.DM.WriteInt(WindowHwnd, BreathAdr, 0, 0);
+            if ((bool)checkBox_Botting.IsChecked)
+            {
+                if (dm.DM.ReadInt(WindowHwnd, PlayerCountAdr, 0) > 0)
+                {
+                    if (_threadOfAlarmForPlayer == null)
+                    {
+                        _threadOfAlarmForPlayer = new Thread(alarmForPlayer);
+                        _threadOfAlarmForPlayer.Start();
+                    }
+                    mre_AlarmForPlayer.Set();
+                }
+            }
+            else
+            {
+                mre_AlarmForPlayer.Reset();
+            }
+            if (dm.DM.GetForegroundWindow() != WindowHwnd)
+                checkBox_Botting.IsChecked = false;
             if (dm.DM.ReadString(WindowHwnd, CharacterNameAdr, 0, 20) != InGameName)
             {
                 this.Close();
@@ -281,13 +382,17 @@ namespace MapleRobots
 
         private void timer2_Tick(object sender, EventArgs e)
         {
-            //System.Windows.MessageBox.Show("start");
+            //System.Windows.Forms.MessageBox.Show("start");
             int point = getPointFromDB(InGameName, -1);
-            labelPoint.Content = "目前點數: " + point;
+            labelPoint.Content = "點數: " + point;
             if (point <= 0)
             {
-                checkBox.IsChecked = false;
-                System.Windows.MessageBox.Show("點數不足");
+                checkBox_Botting.IsChecked = false;
+                System.Windows.Forms.MessageBox.Show("點數不足");
+                checkBox_Botting.IsEnabled = false;
+                textBox_HotKeyBotting.IsEnabled = false;
+                button_keySetting.IsEnabled = false;
+                comboBox.IsEnabled = false;
             }
         }
 
@@ -318,7 +423,15 @@ namespace MapleRobots
                         localIP = ip.ToString();
                     }
                 }
-                conn.Open();
+                try
+                {
+                    conn.Open();
+                }
+                catch
+                {
+                    System.Windows.Forms.MessageBox.Show("無法連接伺服器");
+                    this.Close();
+                }
                 try
                 {
                     cmd.CommandText = @"
@@ -349,6 +462,99 @@ namespace MapleRobots
             }
         }
 
+        private bool checkBanned()
+        {
+            using (var conn = new SqlConnection("Server=tcp:MapleRobots.no-ip.org,1433;Database=MapleRobots;User ID=sa;Password=bstking9g6k;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;"))
+            {
+                var cmd = conn.CreateCommand();
+                NetworkInterface[] nics = NetworkInterface.GetAllNetworkInterfaces();
+                List<string> macList = new List<string>();
+                foreach (var nic in nics)
+                {
+                    // 因為電腦中可能有很多的網卡(包含虛擬的網卡)，
+                    // 我只需要 Ethernet 網卡的 MAC
+                    if (nic.NetworkInterfaceType == NetworkInterfaceType.Ethernet)
+                    {
+                        macList.Add(nic.GetPhysicalAddress().ToString());
+                    }
+                }
+                IPHostEntry host;
+                string localIP = "";
+                host = Dns.GetHostEntry(Dns.GetHostName());
+                foreach (IPAddress ip in host.AddressList)
+                {
+                    if (ip.AddressFamily == AddressFamily.InterNetwork)
+                    {
+                        localIP = ip.ToString();
+                    }
+                }
+                conn.Open();
+                //System.Windows.Forms.MessageBox.Show("ign = \"" + InGameName + "\"");
+                //System.Windows.Forms.MessageBox.Show("ip = \"" + localIP + "\"");
+                //System.Windows.Forms.MessageBox.Show("mac = \"" + macList[0].ToString()+"\"");
+                try
+                {
+                    cmd.CommandText = @"
+                    SELECT InGameName
+                    FROM dbo.RobotsBannedUser
+                    WHERE InGameName = @InGameName;";
+                    cmd.Parameters.AddWithValue("@InGameName", InGameName);
+                    string temp = (string)cmd.ExecuteScalar();
+                    if (temp == null)
+                    {
+                        cmd.CommandText = @"
+                        SELECT MAC
+                        FROM dbo.RobotsBannedUser
+                        WHERE MAC = @MAC;";
+                        cmd.Parameters.AddWithValue("@MAC", macList[0].ToString());
+                        temp = (string)cmd.ExecuteScalar();
+                        if (temp == null)
+                        {
+                            cmd.CommandText = @"
+                            SELECT IP
+                            FROM dbo.RobotsBannedUser
+                            WHERE IP = @IP;";
+                            cmd.Parameters.AddWithValue("@IP", localIP);
+                            temp = (string)cmd.ExecuteScalar();
+                            if (temp == null)
+                            {
+                                return false;
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    try
+                    {
+                        cmd.CommandText = @"
+                        SELECT MAC
+                        FROM dbo.RobotsBannedUser
+                        WHERE MAC = @MAC;";
+                        cmd.Parameters.AddWithValue("@MAC", macList[0].ToString());
+                        string temp = (string)cmd.ExecuteScalar();
+                    }
+                    catch
+                    {
+                        try
+                        {
+                            cmd.CommandText = @"
+                            SELECT IP
+                            FROM dbo.RobotsBannedUser
+                            WHERE IP = @IP;";
+                            cmd.Parameters.AddWithValue("@IP", localIP);
+                            string temp = (string)cmd.ExecuteScalar();
+                        }
+                        catch
+                        {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+        }
+
         private void BindWindow()
         {
             dm = new QfDm();
@@ -365,14 +571,21 @@ namespace MapleRobots
             */
             if (WindowHwnd == 0 || WindowTitle == null)
             {
-                System.Windows.MessageBox.Show("視窗綁定失敗");
+                System.Windows.Forms.MessageBox.Show("視窗綁定失敗");
                 return;
             }
 
             InGameName = dm.DM.ReadString(WindowHwnd, CharacterNameAdr, 0, 20);
             if (InGameName == null || InGameName == "")
             {
-                System.Windows.MessageBox.Show("請先進入遊戲");
+                System.Windows.Forms.MessageBox.Show("請先進入遊戲");
+                return;
+            }
+
+            if (checkBanned())//檢查是否被BAN
+            {
+                System.Windows.MessageBox.Show("伺服器拒絕存取");
+                this.Close();
                 return;
             }
 
@@ -393,6 +606,20 @@ namespace MapleRobots
             textBox_MpValue.IsEnabled = true;
             checkBox_PressKey.IsEnabled = true;
             checkBox_UnlimitedAttack.IsEnabled = true;
+            checkBox_Potions.IsEnabled = true;
+            checkBox_NoBreath.IsEnabled = true;
+            checkBox_PickUp.IsEnabled = true;
+
+            int point = getPointFromDB(InGameName, 0);
+            labelPoint.Content = "點數: " + point;
+            if (point > 0)
+            {
+                checkBox_Botting.IsEnabled = true;
+                textBox_HotKeyBotting.IsEnabled = true;
+                button_keySetting.IsEnabled = true;
+                comboBox.IsEnabled = true;
+            }
+
             UnregisterHotKey(_windowHandle, HOTKEY_ID);
             if (File.Exists(".\\" + filename))
             {
@@ -421,8 +648,18 @@ namespace MapleRobots
                     else
                         textBox_HotKeyAutoAttack.Text = "開關熱鍵";
                     stringBuilder.Clear();
-                    GetPrivateProfileString(InGameName, "HpValue", "", stringBuilder, 30, ".\\" + filename);
+                    GetPrivateProfileString(InGameName, "HotKeyBotting", "", stringBuilder, 30, ".\\" + filename);
                     if (Regex.IsMatch(stringBuilder.ToString(), "^[a-zA-Z0-9]*$") && stringBuilder.ToString() != "")
+                    {
+                        textBox_HotKeyBotting.Text = stringBuilder.ToString();
+                        Enum.TryParse(textBox_HotKeyBotting.Text, out HotKeyBotting);
+                        RegisterHotKey(_windowHandle, HOTKEY_ID + 1, MOD_NONE, (uint)HotKeyBotting);
+                    }
+                    else
+                        textBox_HotKeyAutoAttack.Text = "開關熱鍵";
+                    stringBuilder.Clear();
+                    GetPrivateProfileString(InGameName, "HpValue", "", stringBuilder, 30, ".\\" + filename);
+                    if (Regex.IsMatch(stringBuilder.ToString(), "^[0-9]*$") && stringBuilder.ToString() != "")
                     {
                         try
                         {
@@ -448,7 +685,7 @@ namespace MapleRobots
                         textBox_HotKeyHp.Text = "補血熱鍵";
                     stringBuilder.Clear();
                     GetPrivateProfileString(InGameName, "MpValue", "", stringBuilder, 30, ".\\" + filename);
-                    if (Regex.IsMatch(stringBuilder.ToString(), "^[a-zA-Z0-9]*$") && stringBuilder.ToString() != "")
+                    if (Regex.IsMatch(stringBuilder.ToString(), "^[0-9]*$") && stringBuilder.ToString() != "")
                     {
                         try
                         {
@@ -472,13 +709,107 @@ namespace MapleRobots
                     }
                     else
                         textBox_HotKeyMp.Text = "補魔熱鍵";
+                    stringBuilder.Clear();
+                    GetPrivateProfileString(MainWindow.InGameName, "KeyTeleport", "", stringBuilder, 30, ".\\" + filename);
+                    if (Regex.IsMatch(stringBuilder.ToString(), "^[a-zA-Z0-9]*$") && stringBuilder.ToString() != "")
+                    {
+                        Keys key;
+                        Enum.TryParse(stringBuilder.ToString(), out key);
+                        keyTeleport = key;
+                    }
+                    stringBuilder.Clear();
+                    GetPrivateProfileString(MainWindow.InGameName, "KeyPickUp", "", stringBuilder, 30, ".\\" + filename);
+                    if (Regex.IsMatch(stringBuilder.ToString(), "^[a-zA-Z0-9]*$") && stringBuilder.ToString() != "")
+                    {
+                        Keys key;
+                        Enum.TryParse(stringBuilder.ToString(), out key);
+                        MainWindow.keyPickUp = key;
+                    }
+                    stringBuilder.Clear();
+                    GetPrivateProfileString(MainWindow.InGameName, "KeyAttack", "", stringBuilder, 30, ".\\" + filename);
+                    if (Regex.IsMatch(stringBuilder.ToString(), "^[a-zA-Z0-9]*$") && stringBuilder.ToString() != "")
+                    {
+                        Keys key;
+                        Enum.TryParse(stringBuilder.ToString(), out key);
+                        MainWindow.keyAttack = key;
+                    }
+                    stringBuilder.Clear();
+                    GetPrivateProfileString(MainWindow.InGameName, "KeyJump", "", stringBuilder, 30, ".\\" + filename);
+                    if (Regex.IsMatch(stringBuilder.ToString(), "^[a-zA-Z0-9]*$") && stringBuilder.ToString() != "")
+                    {
+                        Keys key;
+                        Enum.TryParse(stringBuilder.ToString(), out key);
+                        MainWindow.keyJump = key;
+                    }
+                    stringBuilder.Clear();
+                    GetPrivateProfileString(MainWindow.InGameName, "KeyDoor", "", stringBuilder, 30, ".\\" + filename);
+                    if (Regex.IsMatch(stringBuilder.ToString(), "^[a-zA-Z0-9]*$") && stringBuilder.ToString() != "")
+                    {
+                        Keys key;
+                        Enum.TryParse(stringBuilder.ToString(), out key);
+                        MainWindow.keyDoor = key;
+                    }
+                    stringBuilder.Clear();
+                    GetPrivateProfileString(MainWindow.InGameName, "KeySkill", "", stringBuilder, 30, ".\\" + filename);
+                    if (Regex.IsMatch(stringBuilder.ToString(), "^[a-zA-Z0-9]*$") && stringBuilder.ToString() != "")
+                    {
+                        Keys key;
+                        Enum.TryParse(stringBuilder.ToString(), out key);
+                        MainWindow.keySkill = key;
+                    }
+                    stringBuilder.Clear();
+                    GetPrivateProfileString(MainWindow.InGameName, "KeyCombo1", "", stringBuilder, 30, ".\\" + filename);
+                    if (Regex.IsMatch(stringBuilder.ToString(), "^[a-zA-Z0-9]*$") && stringBuilder.ToString() != "")
+                    {
+                        Keys key;
+                        Enum.TryParse(stringBuilder.ToString(), out key);
+                        MainWindow.keyCombo1 = key;
+                    }
+                    stringBuilder.Clear();
+                    GetPrivateProfileString(MainWindow.InGameName, "KeyCombo2", "", stringBuilder, 30, ".\\" + filename);
+                    if (Regex.IsMatch(stringBuilder.ToString(), "^[a-zA-Z0-9]*$") && stringBuilder.ToString() != "")
+                    {
+                        Keys key;
+                        Enum.TryParse(stringBuilder.ToString(), out key);
+                        MainWindow.keyCombo2 = key;
+                    }
+                    stringBuilder.Clear();
+                    GetPrivateProfileString(MainWindow.InGameName, "KeyCombo1Delay", "", stringBuilder, 30, ".\\" + filename);
+                    if (Regex.IsMatch(stringBuilder.ToString(), "^[0-9]*$") && stringBuilder.ToString() != "")
+                    {
+                        int delay;
+                        delay = int.Parse(stringBuilder.ToString());
+                        MainWindow.delayComboKey1 = delay;
+                    }
+                    stringBuilder.Clear();
+                    GetPrivateProfileString(MainWindow.InGameName, "KeyCombo2Delay", "", stringBuilder, 30, ".\\" + filename);
+                    if (Regex.IsMatch(stringBuilder.ToString(), "^[0-9]*$") && stringBuilder.ToString() != "")
+                    {
+                        int delay;
+                        delay = int.Parse(stringBuilder.ToString());
+                        MainWindow.delayComboKey2 = delay;
+                    }
                 }
                 catch
                 {
-                    System.Windows.MessageBox.Show("設定檔錯誤，請刪除data.ini後再嘗試一次");
+                    System.Windows.Forms.MessageBox.Show("設定檔錯誤，請刪除data.ini後再嘗試一次");
                 }
             }
             isBind = true;
+        }
+        private void alarmForPlayer()
+        {
+            //dm = new QfDm();
+            //dm.DM.SetPath(".\\data");
+            while (true)
+            {
+                //int ret = dm.DM.Play("alarm.mp3");
+                //if (ret == 0)
+                //    System.Windows.MessageBox.Show("播放失敗");
+                SystemSounds.Beep.Play();
+                Thread.Sleep(800);
+                mre_AlarmForPlayer.WaitOne();
+            }
         }
     }
 }

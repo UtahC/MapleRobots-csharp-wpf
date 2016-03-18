@@ -3,6 +3,7 @@ using System.Text;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using System.Threading;
 
 namespace MapleRobots
 {
@@ -193,6 +194,7 @@ namespace MapleRobots
         public static void KeyPress(IntPtr hwnd, Keys key)
         {
             PostMessage(hwnd, WM_KEYDOWN, (IntPtr)key, MakeKeyLparam((int)key, WM_KEYDOWN));
+            Thread.Sleep(1);
             PostMessage(hwnd, WM_KEYUP, (IntPtr)key, MakeKeyLparam((int)key, WM_KEYDOWN)); 
         }
         public static void KeyPress(IntPtr hwnd, string keyString)

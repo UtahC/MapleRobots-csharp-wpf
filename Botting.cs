@@ -34,7 +34,7 @@ namespace MapleRobots
         {
             while (true)
             {
-                Hack.KeyDown((IntPtr)WindowHwnd, Keys.Z);
+                Hack.KeyDown((IntPtr)WindowHwnd, MainWindow.keyPickUp);
                 Thread.Sleep(50);
                 mre_PickUp.WaitOne();
             }
@@ -53,7 +53,7 @@ namespace MapleRobots
             times = times * 50;
             while (times >= 0)
             {
-                Hack.KeyPress((IntPtr)WindowHwnd, Keys.C);
+                Hack.KeyPress((IntPtr)WindowHwnd, MainWindow.keyAttack);
                 Thread.Sleep(50);
                 times--;
             }
@@ -123,7 +123,7 @@ namespace MapleRobots
                 {
                     Hack.KeyUp((IntPtr)WindowHwnd, Keys.Up);
                     Hack.KeyUp((IntPtr)WindowHwnd, Keys.Down);
-                    Hack.KeyPress((IntPtr)WindowHwnd, Keys.Menu);
+                    Hack.KeyPress((IntPtr)WindowHwnd, MainWindow.keyJump);
                 }
                 else if (CharacterY < upBoundary - 20)
                 {
@@ -166,14 +166,14 @@ namespace MapleRobots
                     Hack.KeyUp((IntPtr)WindowHwnd, Keys.Left);
                     Hack.KeyDown((IntPtr)WindowHwnd, Keys.Right);
                     if (isTeleport)
-                        Hack.KeyPress((IntPtr)WindowHwnd, Keys.ShiftKey);
+                        Hack.KeyPress((IntPtr)WindowHwnd, MainWindow.keyTeleport);
                 }
                 else if (CharacterX > rightFarBoundary)
                 {
                     Hack.KeyUp((IntPtr)WindowHwnd, Keys.Right);
                     Hack.KeyDown((IntPtr)WindowHwnd, Keys.Left);
                     if (isTeleport)
-                        Hack.KeyPress((IntPtr)WindowHwnd, Keys.ShiftKey);
+                        Hack.KeyPress((IntPtr)WindowHwnd, MainWindow.keyTeleport);
                 }
                 else if (CharacterX > leftFarBoundary && CharacterX < leftBoundary)
                 {
@@ -197,7 +197,7 @@ namespace MapleRobots
             //dmBotting = new QfDm();
             int CharacterX, CharacterY, CharacterStatus;
             GoToNearX(coorX, leftDistance, rightDistance);
-            Hack.KeyPress((IntPtr)WindowHwnd, Keys.Menu);
+            Hack.KeyPress((IntPtr)WindowHwnd, MainWindow.keyJump);
             GoToX(coorX, 4, true, true, 0);
             while (true)
             {
@@ -222,29 +222,24 @@ namespace MapleRobots
             dmBotting = new QfDm();
             object outX = -1, outY = -1;
             int lastItemX, lastItemY;
-            string lastItemColor, lastItemColor2;
-            dmBotting.DM.BindWindow(WindowHwnd, "gdi2", "normal", "normal", 0);
-            dmBotting.DM.SetPath(".\\data");
+            string lastItemColor, lastItemColor2; 
+            dmBotting.DM.BindWindow(WindowHwnd, "normal", "normal", "normal", 0);
+            dmBotting.DM.SetPath(".\\data"); 
             object windowX1, windowX2, windowY1, windowY2;
             dmBotting.DM.GetWindowRect(WindowHwnd, out windowX1, out windowY1, out windowX2, out windowY2);
             Debug.WriteLine(windowX1 + "," + windowY1 + "," + windowX2 + "," + windowY2);
             windowX = ((int)windowX2 - 800) / 2;
             windowY = ((int)windowY2 - 600) - windowX;
             Debug.WriteLine(windowX + "," + windowY);
+            //MessageBox.Show(windowX + "," + windowY);
             while (dmBotting.DM.FindPic(windowX, windowY, 800 + windowX, 600 + windowY, "ItemInventory.bmp", "000000", 0.9, 0, out outX, out outY) < 0)
             {
                 Hack.KeyPress((IntPtr)WindowHwnd, Keys.I);
                 Thread.Sleep(1000);
             }
-            
+            //MessageBox.Show("ItemInventoryX = " + outX + ", ItemInventoryY = " + outY);
             lastItemX = (int)outX + 123 + windowX;
             lastItemY = (int)outY + 225 + windowY;
-            //dmBotting.DM.ClientToScreen(WindowHwnd, lastItemX, lastItemY);
-            //object windowX1, windowX2, windowY1, windowY2;
-            //dmBotting.DM.GetWindowRect(WindowHwnd, out windowX1, out windowY1, out windowX2, out windowY2);
-            //Debug.WriteLine(windowX1 + "," + windowY1 + "," + windowX2 + "," + windowY2);
-            //lastItemX += (int)windowX1;
-            //lastItemY += (int)windowY1;
             Debug.WriteLine("lastItemX = " + lastItemX + ", lastItemY = " + lastItemY);
             _threadOfTraining = new Thread(bottingGobyTraining);
             _threadOfTraining.Start();
@@ -252,10 +247,18 @@ namespace MapleRobots
             while (true)
             {
                 lastItemColor = dmBotting.DM.GetColor(lastItemX, lastItemY);
+                char[] array1 = lastItemColor.ToArray();
                 lastItemColor2 = dmBotting.DM.GetColor(lastItemX + 10, lastItemY - 10);
-                if (lastItemColor != "dddddd" && lastItemColor != "ddddcc" || 
-                    lastItemColor2 != "eeeecc" && lastItemColor2 != "dddddd" )
+                char[] array2 = lastItemColor2.ToArray();
+                int sum1 = 0, sum2 = 0;
+                for (int i = 0; i < 6; i++)
                 {
+                    sum1 = sum1 + array1[i];
+                    sum2 = sum2 + array2[i];
+                }
+                if (sum1 < 594 || sum1 > 606 || sum2 < 594 || sum2 > 606)
+                {
+                    //MessageBox.Show("color = " + lastItemColor + ", color2 = " + lastItemColor2);
                     Debug.WriteLine("color = " + lastItemColor + ", color2 = " + lastItemColor2);
                     _threadOfTraining.Abort();
                     _threadOfTraining = null;
@@ -274,24 +277,27 @@ namespace MapleRobots
             int counter = 0;
             while (true)
             {
-                GoToLocationInWater(-446, 500, 20, true, false, 0);
+                GoToLocationInWater(-446, 520, 20, true, false, 0);
                 Attack(2);
                 if (counter % 3 == 0)
                 {
                     mre_PickUp.Reset();
-                    GoToX(-689, 20, false, false, 0);
+                    //GoToX(-689, 20, false, false, 0);
                     if (counter % 6 == 0)
                     {
                         GoToLocationInWater(-585, 882, 20, true, false, 0);
-                        Hack.KeyPress((IntPtr)WindowHwnd, Keys.Home);
-                        Thread.Sleep(3000);
-                        Hack.KeyPress((IntPtr)WindowHwnd, Keys.PageUp);
-                        Thread.Sleep(3000);
+                        for (int i = 0; i < 25; i++)
+                            Hack.KeyPress((IntPtr)WindowHwnd, MainWindow.keyCombo1);
+                        Thread.Sleep(MainWindow.delayComboKey1);
+                        for (int i = 0; i < 25; i++)
+                            Hack.KeyPress((IntPtr)WindowHwnd, MainWindow.keyCombo2);
+                        Thread.Sleep(MainWindow.delayComboKey2);
                     }
                     else
                     {
                         GoToLocationInWater(-585, 882, 20, true, false, 0);
-                        Hack.KeyPress((IntPtr)WindowHwnd, Keys.V);
+                        for (int i = 0; i < 10; i++)
+                            Hack.KeyPress((IntPtr)WindowHwnd, MainWindow.keySkill);
                         Thread.Sleep(1500);
                     }
                     mre_PickUp.Set();
@@ -310,11 +316,11 @@ namespace MapleRobots
                 do
                 {
                     Attack(1);
-                } while (dmBotting.DM.ReadInt(WindowHwnd, MobCountAdr, 0) >= 20);
+                } while (dmBotting.DM.ReadInt(WindowHwnd, MobCountAdr, 0) > 21);
                 if (counter % 3 == 0)
                     GoToLocationInWater(-829, 875, 20, true, false, 0);
                 else if (counter % 3 == 1)
-                    GoToLocationInWater(-83, 410, 20, false, false, 0);
+                    GoToLocationInWater(-83, 450, 20, false, false, 0);
                 counter++;
             }
         }
@@ -335,7 +341,7 @@ namespace MapleRobots
                 {
                     doorX = dmBotting.DM.ReadInt(WindowHwnd, DoorXAdr, 0);
                     doorY = dmBotting.DM.ReadInt(WindowHwnd, DoorYAdr, 0);
-                    Hack.KeyPress((IntPtr)WindowHwnd, Keys.D0);
+                    Hack.KeyPress((IntPtr)WindowHwnd, MainWindow.keyDoor);
                     Thread.Sleep(1000);
                 }
                 DateTime time_start = DateTime.Now;
@@ -348,6 +354,7 @@ namespace MapleRobots
                     result = ((TimeSpan)(time_end - time_start)).TotalMilliseconds;
                 }
             }
+            mre_PickUp.Reset();
             // Aquarium -> Aquarium Store
             while (dmBotting.DM.ReadInt(WindowHwnd, MainWindow.MapIDAdr, 0) != 230000002)
             {
@@ -385,11 +392,13 @@ namespace MapleRobots
             // Aquarium -> Goby
             while (dmBotting.DM.ReadInt(WindowHwnd, MainWindow.MapIDAdr, 0) != 230040100)
             {
+                GoToLocationInWater(195, 340, 5, true, true, 230040100);
                 while (dmBotting.DM.ReadInt(WindowHwnd, MainWindow.MapIDAdr, 0) == 230000000)
                 {
                     GoToLocationInWater(674, 340, 5, true, true, 230040100);
                 }
             }
+            mre_PickUp.Set();
         }
 
         internal static void selling()
@@ -400,14 +409,17 @@ namespace MapleRobots
             int Xi = (int)outX;
             int Yi = (int)outY + 104;
             Debug.WriteLine("SellItemX = " + outX + ", SellItemY = " + outY);
+            string sureSellColor1, sureSellColor2;
+            sureSellColor1 = dmBotting.DM.GetColor(297 + windowX, 271 + windowY);
             while (dmBotting.DM.FindPic(403 + windowX, 256 + windowY, 439 + windowX, 292 + windowY, "EmptyEqu.bmp", "000000", 0.7, 0, out outX, out outY) < 0)
-            //while (dmBotting.DM.FindPic(406, 281, 442, 317, "EmptyEqu.bmp", "000000", 0.7, 0, out outX, out outY) < 0)
             {
                 dmBotting.DM.MoveTo(Xi, Yi);
                 dmBotting.DM.LeftClick();
                 dmBotting.DM.LeftClick();
                 dmBotting.DM.LeftClick();
-                if (dmBotting.DM.FindPic(windowX, windowY, 800 + windowX, 600 + windowY, "SureSell.bmp", "000000", 0.9, 0, out outX, out outY) >= 0)
+                sureSellColor1 = dmBotting.DM.GetColor(297 + windowX, 271 + windowY);
+                sureSellColor2 = dmBotting.DM.GetColor(481 + windowX, 271 + windowY);
+                if (sureSellColor1 == "4488bb" && sureSellColor2 == "4488bb")
                     Hack.KeyPress((IntPtr)WindowHwnd, Keys.Enter);
             }
             while (dmBotting.DM.FindPic(windowX, windowY, 800 + windowX, 600 + windowY, "SellItem.bmp", "000000", 0.9, 0, out outX, out outY) >= 0)
