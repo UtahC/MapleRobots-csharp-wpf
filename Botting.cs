@@ -21,7 +21,7 @@ namespace MapleRobots
         internal static string DoorXAdr = MainWindow.DoorXAdr;
         internal static string DoorYAdr = MainWindow.DoorYAdr;
         internal static Thread _threadOfTraining;
-        private QfDm dmBotting;
+        internal static QfDm dmBotting;
 
         internal static ManualResetEvent mre_KeyPresser = new ManualResetEvent(true);
         internal static ManualResetEvent mre_PickUp = new ManualResetEvent(true);
@@ -48,7 +48,7 @@ namespace MapleRobots
                 mre_KeyPresser.WaitOne();
             }
         }
-        internal void Attack(int times)
+        internal static void Attack(int times)
         {
             times = times * 50;
             while (times >= 0)
@@ -58,7 +58,7 @@ namespace MapleRobots
                 times--;
             }
         }
-        internal int Distance(int x1, int y1, int x2, int y2)
+        internal static int Distance(int x1, int y1, int x2, int y2)
         {
             return Math.Abs(x1 - x2) + Math.Abs(y1 - y2);
         }
@@ -82,7 +82,7 @@ namespace MapleRobots
             }
         }
 
-        internal void GoToLocationInWater(int coorX, int coorY, int deviation, bool isTeleport, bool isWithUp, int targetMapID)
+        internal static void GoToLocationInWater(int coorX, int coorY, int deviation, bool isTeleport, bool isWithUp, int targetMapID)
         {
             //dmBotting = new QfDm();
             int CharacterX, CharacterY;
@@ -137,7 +137,7 @@ namespace MapleRobots
 
         }
 
-        internal void GoToX(int coorX, int deviation, bool isTeleport, bool isWithUp, int targetMapID)
+        internal static void GoToX(int coorX, int deviation, bool isTeleport, bool isWithUp, int targetMapID)
         {
             //dmBotting = new QfDm();
             int CharacterX;
@@ -192,7 +192,7 @@ namespace MapleRobots
             }
         }
 
-        internal void RopeClimbing(bool isClimbToTop, int coorX, int topBoundary, int floorY, int leftDistance, int rightDistance)
+        internal void RopeClimbing(int coorX, int topBoundary, int floorY, int leftDistance, int rightDistance)
         {
             //dmBotting = new QfDm();
             int CharacterX, CharacterY, CharacterStatus;
@@ -204,14 +204,7 @@ namespace MapleRobots
                 CharacterX = dmBotting.DM.ReadInt(WindowHwnd, CharacterXAdr, 0);
                 CharacterY = dmBotting.DM.ReadInt(WindowHwnd, CharacterYAdr, 0);
                 CharacterStatus = dmBotting.DM.ReadInt(WindowHwnd, CharacterStatusAdr, 0);
-                if (isClimbToTop && CharacterY <= topBoundary && CharacterStatus != 14 && CharacterStatus != 15)
-                {
-                    Hack.KeyUp((IntPtr)WindowHwnd, Keys.Up);
-                    Hack.KeyUp((IntPtr)WindowHwnd, Keys.Right);
-                    Hack.KeyUp((IntPtr)WindowHwnd, Keys.Left);
-                    return;
-                }
-                else if (!isClimbToTop && (CharacterStatus == 14 || CharacterStatus == 15))
+                if (CharacterY <= topBoundary && CharacterStatus != 14 && CharacterStatus != 15)
                 {
                     Hack.KeyUp((IntPtr)WindowHwnd, Keys.Up);
                     Hack.KeyUp((IntPtr)WindowHwnd, Keys.Right);
@@ -221,20 +214,15 @@ namespace MapleRobots
                 else if (CharacterX >= coorX - 5 && CharacterX <= coorX + 5 && CharacterY <= floorY)
                     Hack.KeyDown((IntPtr)WindowHwnd, Keys.Up);
                 else
-                    RopeClimbing(isClimbToTop, coorX, topBoundary, floorY, leftDistance, rightDistance);
+                    RopeClimbing(coorX, topBoundary, floorY, leftDistance, rightDistance);
             }
         }
-        internal void bottingBubbling()
-        {
-            //dmBotting = new QfDm();
-
-        }
-        internal void bottingGoby()
+        internal static void bottingGoby()
         {
             dmBotting = new QfDm();
             object outX = -1, outY = -1;
-            int lastItemX, lastItemY; 
-            string lastItemColor, lastItemColor2;
+            int lastItemX, lastItemY;
+            string lastItemColor, lastItemColor2; 
             dmBotting.DM.BindWindow(WindowHwnd, "normal", "normal", "normal", 0);
             dmBotting.DM.SetPath(".\\data"); 
             object windowX1, windowX2, windowY1, windowY2;
@@ -282,7 +270,7 @@ namespace MapleRobots
             }
         }
 
-        internal void bottingGobyTraining()
+        internal static void bottingGobyTraining()
         {
             dmBotting = new QfDm();
             //Random random = new Random(Guid.NewGuid().GetHashCode());
@@ -337,7 +325,7 @@ namespace MapleRobots
             }
         }
 
-        internal void bottingGobyShopping()
+        internal static void bottingGobyShopping()
         {
             //dmBotting = new QfDm();
             // Goby -> Aquarium
@@ -413,7 +401,7 @@ namespace MapleRobots
             mre_PickUp.Set();
         }
 
-        internal void selling()
+        internal static void selling()
         {
             //dmBotting = new QfDm();
             object outX, outY;
