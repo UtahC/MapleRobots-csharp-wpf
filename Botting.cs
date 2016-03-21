@@ -28,7 +28,7 @@ namespace MapleRobots
 
         public Botting()
         {
-            dmBotting = new QfDm();
+            //dmBotting = new QfDm();
         }
         internal void PickUp()
         {
@@ -192,7 +192,7 @@ namespace MapleRobots
             }
         }
 
-        internal void RopeClimbing(int coorX, int topBoundary, int floorY, int leftDistance, int rightDistance)
+        internal void RopeClimbing(bool isClimbToTop, int coorX, int topBoundary, int floorY, int leftDistance, int rightDistance)
         {
             //dmBotting = new QfDm();
             int CharacterX, CharacterY, CharacterStatus;
@@ -204,7 +204,14 @@ namespace MapleRobots
                 CharacterX = dmBotting.DM.ReadInt(WindowHwnd, CharacterXAdr, 0);
                 CharacterY = dmBotting.DM.ReadInt(WindowHwnd, CharacterYAdr, 0);
                 CharacterStatus = dmBotting.DM.ReadInt(WindowHwnd, CharacterStatusAdr, 0);
-                if (CharacterY <= topBoundary && CharacterStatus != 14 && CharacterStatus != 15)
+                if (isClimbToTop && CharacterY <= topBoundary && CharacterStatus != 14 && CharacterStatus != 15)
+                {
+                    Hack.KeyUp((IntPtr)WindowHwnd, Keys.Up);
+                    Hack.KeyUp((IntPtr)WindowHwnd, Keys.Right);
+                    Hack.KeyUp((IntPtr)WindowHwnd, Keys.Left);
+                    return;
+                }
+                else if (!isClimbToTop && (CharacterStatus == 14 || CharacterStatus == 15))
                 {
                     Hack.KeyUp((IntPtr)WindowHwnd, Keys.Up);
                     Hack.KeyUp((IntPtr)WindowHwnd, Keys.Right);
@@ -214,25 +221,30 @@ namespace MapleRobots
                 else if (CharacterX >= coorX - 5 && CharacterX <= coorX + 5 && CharacterY <= floorY)
                     Hack.KeyDown((IntPtr)WindowHwnd, Keys.Up);
                 else
-                    RopeClimbing(coorX, topBoundary, floorY, leftDistance, rightDistance);
+                    RopeClimbing(isClimbToTop, coorX, topBoundary, floorY, leftDistance, rightDistance);
             }
+        }
+        internal static void bottingBubbling()
+        {
+            dmBotting = new QfDm();
+
         }
         internal static void bottingGoby()
         {
-            dmBotting = new QfDm();
+            QfDm dmBotting2 = new QfDm();
             object outX = -1, outY = -1;
-            int lastItemX, lastItemY;
-            string lastItemColor, lastItemColor2; 
-            dmBotting.DM.BindWindow(WindowHwnd, "normal", "normal", "normal", 0);
-            dmBotting.DM.SetPath(".\\data"); 
+            int lastItemX, lastItemY; 
+            string lastItemColor, lastItemColor2;
+            dmBotting2.DM.BindWindow(WindowHwnd, "normal", "normal", "normal", 0);
+            dmBotting2.DM.SetPath(".\\data"); 
             object windowX1, windowX2, windowY1, windowY2;
-            dmBotting.DM.GetWindowRect(WindowHwnd, out windowX1, out windowY1, out windowX2, out windowY2);
+            dmBotting2.DM.GetWindowRect(WindowHwnd, out windowX1, out windowY1, out windowX2, out windowY2);
             Debug.WriteLine(windowX1 + "," + windowY1 + "," + windowX2 + "," + windowY2);
             windowX = ((int)windowX2 - 800) / 2;
             windowY = ((int)windowY2 - 600) - windowX;
             Debug.WriteLine(windowX + "," + windowY);
             //MessageBox.Show(windowX + "," + windowY);
-            while (dmBotting.DM.FindPic(windowX, windowY, 800 + windowX, 600 + windowY, "ItemInventory.bmp", "000000", 0.9, 0, out outX, out outY) < 0)
+            while (dmBotting2.DM.FindPic(windowX, windowY, 800 + windowX, 600 + windowY, "ItemInventory.bmp", "000000", 0.9, 0, out outX, out outY) < 0)
             {
                 Hack.KeyPress((IntPtr)WindowHwnd, Keys.I);
                 Thread.Sleep(1000);
@@ -243,12 +255,12 @@ namespace MapleRobots
             Debug.WriteLine("lastItemX = " + lastItemX + ", lastItemY = " + lastItemY);
             _threadOfTraining = new Thread(bottingGobyTraining);
             _threadOfTraining.Start();
-            lastItemColor = dmBotting.DM.GetColor(lastItemX, lastItemY);
+            lastItemColor = dmBotting2.DM.GetColor(lastItemX, lastItemY);
             while (true)
             {
-                lastItemColor = dmBotting.DM.GetColor(lastItemX, lastItemY);
+                lastItemColor = dmBotting2.DM.GetColor(lastItemX, lastItemY);
                 char[] array1 = lastItemColor.ToArray();
-                lastItemColor2 = dmBotting.DM.GetColor(lastItemX + 10, lastItemY - 10);
+                lastItemColor2 = dmBotting2.DM.GetColor(lastItemX + 10, lastItemY - 10);
                 char[] array2 = lastItemColor2.ToArray();
                 int sum1 = 0, sum2 = 0;
                 for (int i = 0; i < 6; i++)

@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System.Threading;
-using System.Collections.Generic;
 
 namespace MapleRobots
 {
@@ -13,16 +12,37 @@ namespace MapleRobots
         const int WM_KEYDOWN = 0x0100;
         const int WM_KEYUP = 0x0101;
 
+        [DllImportAttribute("kernel32.dll", EntryPoint = "ReadProcessMemory")]
+        public static extern bool ReadProcessMemory
+        (
+        IntPtr hProcess,
+        IntPtr lpBaseAddress,
+        IntPtr lpBuffer,
+        int nSize,
+        IntPtr lpNumberOfBytesRead
+        );
+        [DllImportAttribute("kernel32.dll", EntryPoint = "OpenProcess")]
+        public static extern IntPtr OpenProcess
+        (
+        int dwDesiredAccess,
+        bool bInheritHandle,
+        int dwProcessId
+        );
         [DllImport("kernel32.dll")]
-        public static extern IntPtr OpenProcess(int dwDesiredAccess, bool bInheritHandle, int dwProcessId);
-
-        [DllImport("kernel32.dll")]
-        public static extern bool ReadProcessMemory(int hProcess,
-          int lpBaseAddress, byte[] lpBuffer, int dwSize, ref int lpNumberOfBytesRead);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        static extern bool WriteProcessMemory(int hProcess, int lpBaseAddress,
-          byte[] lpBuffer, int dwSize, ref int lpNumberOfBytesWritten);
+        private static extern void CloseHandle
+        (
+        IntPtr hObject
+        );
+        //写内存
+        [DllImportAttribute("kernel32.dll", EntryPoint = "WriteProcessMemory")]
+        public static extern bool WriteProcessMemory
+        (
+        IntPtr hProcess,
+        IntPtr lpBaseAddress,
+        int[] lpBuffer,
+        int nSize,
+        IntPtr lpNumberOfBytesWritten
+        );
 
         [DllImport("user32.dll")]
         public static extern bool SetForegroundWindow(IntPtr hWnd);
@@ -42,74 +62,123 @@ namespace MapleRobots
         [DllImport("user32.dll")]
 	    public static extern void keybd_event(byte bVk, byte bScan, int dwFlags, int dwExtraInfo);
 
-        public static int ReadInt(Process process, string address)
+        //获取窗体的进程标识ID
+        public static int GetPid(string windowTitle)
         {
-            List<int> list = GetAddressAndOffset(address);
-
-            int value;
-            int bytesRead = 0;
-            byte[] buffer = new byte[4];
-
-            if (list.Count == 2)
+            int rs = 0;
+            Process[] arrayProcess = Process.GetProcesses();
+            foreach (Process p in arrayProcess)
             {
-                ReadProcessMemory((int)process.Handle, list[0], buffer, buffer.Length, ref bytesRead);
-                int baseAdr = Convert.ToInt32(buffer);
-                baseAdr = baseAdr + list[1];
-                ReadProcessMemory((int)process.Handle, baseAdr, buffer, buffer.Length, ref bytesRead);
-                value = Convert.ToInt32(buffer);
+                if (p.MainWindowTitle.IndexOf(windowTitle) != -1)
+                {
+                    rs = p.Id;
+                    break;
+                }
             }
-            else if (list.Count == 1)
+            return rs;
+        }
+        //根据进程名获取PID
+        public static int GetPidByProcessName(string processName)
+        {
+            Process[] arrayProcess = Process.GetProcessesByName(processName);
+            foreach (Process p in arrayProcess)
             {
-                ReadProcessMemory((int)process.Handle, list[0], buffer, buffer.Length, ref bytesRead);
-                value = Convert.ToInt32(buffer);
+                return p.Id;
+            }
+            return 0;
+        }
+        //根据窗体标题查找窗口句柄（支持模糊匹配）
+        public static IntPtr FindWindow(string title)
+        {
+            Process[] ps = Process.GetProcesses();
+            foreach (Process p in ps)
+            {
+                if (p.MainWindowTitle.IndexOf(title) != -1)
+                {
+                    return p.MainWindowHandle;
+                }
+            }
+            return IntPtr.Zero;
+        }
+        //读取内存中的值
+        public static int ReadMemoryValue(int baseAddress, string processName)
+        {
+            try
+            {
+                byte[] buffer = new byte[4];
+                IntPtr byteAddress = Marshal.UnsafeAddrOfPinnedArrayElement(buffer, 0); //获取缓冲区地址
+                IntPtr hProcess = OpenProcess(0x1F0FFF, false, GetPidByProcessName(processName));
+                ReadProcessMemory(hProcess, (IntPtr)baseAddress, byteAddress, 4, IntPtr.Zero); //将制定内存中的值读入缓冲区
+                CloseHandle(hProcess);
+                int value = Marshal.ReadInt32(byteAddress);
+                return value;
+            }
+            catch(AccessViolationException e)
+            {
+                System.Diagnostics.Debug.Print(e.ToString());
+                return -1;
+            }
+        }
+        public static double ReadMemoryValueDouble(int baseAddress, string processName)
+        {
+            try
+            {
+                byte[] buffer = new byte[8];
+                IntPtr byteAddress = Marshal.UnsafeAddrOfPinnedArrayElement(buffer, 0); //获取缓冲区地址
+                IntPtr hProcess = OpenProcess(0x1F0FFF, false, GetPidByProcessName(processName));
+                ReadProcessMemory(hProcess, (IntPtr)baseAddress, byteAddress, 8, IntPtr.Zero); //将制定内存中的值读入缓冲区
+                CloseHandle(hProcess);
+
+
+                return BitConverter.ToDouble(buffer,0); 
+            }
+            catch
+            {
+                return -1;
+            }
+        }
+        //将值写入指定内存地址中
+        public static void WriteMemoryValue(int baseAddress, string processName, int value)
+        {
+            IntPtr hProcess = OpenProcess(0x1F0FFF, false, GetPidByProcessName(processName)); //0x1F0FFF 最高权限
+            WriteProcessMemory(hProcess, (IntPtr)baseAddress, new int[] { value }, 4, IntPtr.Zero);
+            CloseHandle(hProcess);
+        }
+        public static int ReadInt(int baseAddress, int offset, string processName)
+        {
+            int address = ReadMemoryValue(baseAddress, processName);
+            if (address >= 0)
+            {
+                address += offset;
+                int value = ReadMemoryValue(address, processName);
+                return value;
             }
             else
-                value = -1;
-            return value;
+                return -1;
         }
-
-        public static void WriteInt(Process process, string address, int value)
+        public static double ReadDouble(int baseAddress, int offset, string processName)
         {
-            List<int> list = GetAddressAndOffset(address);
-
-            int bytesRead = 0;
-            int bytesWritten = 0;
-            byte[] buffer = new byte[4];
-            buffer = BitConverter.GetBytes(value);
-
-            if (list.Count == 2)
+            int address = ReadMemoryValue(baseAddress, processName);
+            if (address >= 0)
             {
-                ReadProcessMemory((int)process.Handle, list[0], buffer, buffer.Length, ref bytesRead);
-                int baseAdr = Convert.ToInt32(buffer);
-                baseAdr = baseAdr + list[1];
-                WriteProcessMemory((int)process.Handle, baseAdr, buffer, buffer.Length, ref bytesWritten);
-                value = Convert.ToInt32(buffer);
-            }
-            else if (list.Count == 1)
-            {
-                WriteProcessMemory((int)process.Handle, list[0], buffer, buffer.Length, ref bytesWritten);
-                value = Convert.ToInt32(buffer);
-            }
-            
-        }
-
-        public static List <int> GetAddressAndOffset(string address)
-        {
-            List<int> list = new List<int>();
-            char[] addr = address.ToCharArray();
-            if (addr[0] == '[')
-            {
-                address.IndexOf(']');
-                string str = address.Substring(1, 8);
-                list.Add(int.Parse(str));
-                str = address.Substring(address.IndexOf(']') + 1);
-                list.Add(int.Parse(str));
+                address += offset;
+                double value = ReadMemoryValueDouble(address, processName);
+                return value;
             }
             else
-                list.Add(int.Parse(address));
-            return list;
+                return -1;
         }
-
+        public static void WriteInt(int baseAddress, int offset, string processName, int value)
+        {
+            int address = ReadMemoryValue(baseAddress, processName);
+            if (address >= 0)
+            {
+                address += offset;
+                WriteMemoryValue(address, processName, value);
+            }
+            else
+                return ;
+        }
         public static IntPtr GetForegroundWindowHwnd()
         {
             return GetForegroundWindow();
