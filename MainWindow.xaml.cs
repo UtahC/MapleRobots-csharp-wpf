@@ -93,7 +93,7 @@ namespace MapleRobots
         private HwndSource _source;
 
         protected override void OnSourceInitialized(EventArgs e)
-        {
+        { 
             base.OnSourceInitialized(e);
 
             _windowHandle = new WindowInteropHelper(this).Handle;
