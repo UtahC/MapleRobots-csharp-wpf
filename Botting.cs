@@ -21,14 +21,14 @@ namespace MapleRobots
         internal static string DoorXAdr = MainWindow.DoorXAdr;
         internal static string DoorYAdr = MainWindow.DoorYAdr;
         internal static Thread _threadOfTraining;
-        internal static QfDm dmBotting;
+        private QfDm dmBotting;
 
         internal static ManualResetEvent mre_KeyPresser = new ManualResetEvent(true);
         internal static ManualResetEvent mre_PickUp = new ManualResetEvent(true);
 
         public Botting()
         {
-            //dmBotting = new QfDm();
+            dmBotting = new QfDm();
         }
         internal void PickUp()
         {
@@ -48,7 +48,7 @@ namespace MapleRobots
                 mre_KeyPresser.WaitOne();
             }
         }
-        internal static void Attack(int times)
+        internal void Attack(int times)
         {
             times = times * 50;
             while (times >= 0)
@@ -58,7 +58,7 @@ namespace MapleRobots
                 times--;
             }
         }
-        internal static int Distance(int x1, int y1, int x2, int y2)
+        internal int Distance(int x1, int y1, int x2, int y2)
         {
             return Math.Abs(x1 - x2) + Math.Abs(y1 - y2);
         }
@@ -82,7 +82,7 @@ namespace MapleRobots
             }
         }
 
-        internal static void GoToLocationInWater(int coorX, int coorY, int deviation, bool isTeleport, bool isWithUp, int targetMapID)
+        internal void GoToLocationInWater(int coorX, int coorY, int deviation, bool isTeleport, bool isWithUp, int targetMapID)
         {
             //dmBotting = new QfDm();
             int CharacterX, CharacterY;
@@ -137,7 +137,7 @@ namespace MapleRobots
 
         }
 
-        internal static void GoToX(int coorX, int deviation, bool isTeleport, bool isWithUp, int targetMapID)
+        internal void GoToX(int coorX, int deviation, bool isTeleport, bool isWithUp, int targetMapID)
         {
             //dmBotting = new QfDm();
             int CharacterX;
@@ -224,27 +224,27 @@ namespace MapleRobots
                     RopeClimbing(isClimbToTop, coorX, topBoundary, floorY, leftDistance, rightDistance);
             }
         }
-        internal static void bottingBubbling()
+        internal void bottingBubbling()
         {
-            dmBotting = new QfDm();
+            //dmBotting = new QfDm();
 
         }
-        internal static void bottingGoby()
+        internal void bottingGoby()
         {
-            QfDm dmBotting2 = new QfDm();
+            dmBotting = new QfDm();
             object outX = -1, outY = -1;
             int lastItemX, lastItemY; 
             string lastItemColor, lastItemColor2;
-            dmBotting2.DM.BindWindow(WindowHwnd, "normal", "normal", "normal", 0);
-            dmBotting2.DM.SetPath(".\\data"); 
+            dmBotting.DM.BindWindow(WindowHwnd, "normal", "normal", "normal", 0);
+            dmBotting.DM.SetPath(".\\data"); 
             object windowX1, windowX2, windowY1, windowY2;
-            dmBotting2.DM.GetWindowRect(WindowHwnd, out windowX1, out windowY1, out windowX2, out windowY2);
+            dmBotting.DM.GetWindowRect(WindowHwnd, out windowX1, out windowY1, out windowX2, out windowY2);
             Debug.WriteLine(windowX1 + "," + windowY1 + "," + windowX2 + "," + windowY2);
             windowX = ((int)windowX2 - 800) / 2;
             windowY = ((int)windowY2 - 600) - windowX;
             Debug.WriteLine(windowX + "," + windowY);
             //MessageBox.Show(windowX + "," + windowY);
-            while (dmBotting2.DM.FindPic(windowX, windowY, 800 + windowX, 600 + windowY, "ItemInventory.bmp", "000000", 0.9, 0, out outX, out outY) < 0)
+            while (dmBotting.DM.FindPic(windowX, windowY, 800 + windowX, 600 + windowY, "ItemInventory.bmp", "000000", 0.9, 0, out outX, out outY) < 0)
             {
                 Hack.KeyPress((IntPtr)WindowHwnd, Keys.I);
                 Thread.Sleep(1000);
@@ -255,12 +255,12 @@ namespace MapleRobots
             Debug.WriteLine("lastItemX = " + lastItemX + ", lastItemY = " + lastItemY);
             _threadOfTraining = new Thread(bottingGobyTraining);
             _threadOfTraining.Start();
-            lastItemColor = dmBotting2.DM.GetColor(lastItemX, lastItemY);
+            lastItemColor = dmBotting.DM.GetColor(lastItemX, lastItemY);
             while (true)
             {
-                lastItemColor = dmBotting2.DM.GetColor(lastItemX, lastItemY);
+                lastItemColor = dmBotting.DM.GetColor(lastItemX, lastItemY);
                 char[] array1 = lastItemColor.ToArray();
-                lastItemColor2 = dmBotting2.DM.GetColor(lastItemX + 10, lastItemY - 10);
+                lastItemColor2 = dmBotting.DM.GetColor(lastItemX + 10, lastItemY - 10);
                 char[] array2 = lastItemColor2.ToArray();
                 int sum1 = 0, sum2 = 0;
                 for (int i = 0; i < 6; i++)
@@ -282,7 +282,7 @@ namespace MapleRobots
             }
         }
 
-        internal static void bottingGobyTraining()
+        internal void bottingGobyTraining()
         {
             dmBotting = new QfDm();
             //Random random = new Random(Guid.NewGuid().GetHashCode());
@@ -337,7 +337,7 @@ namespace MapleRobots
             }
         }
 
-        internal static void bottingGobyShopping()
+        internal void bottingGobyShopping()
         {
             //dmBotting = new QfDm();
             // Goby -> Aquarium
@@ -413,7 +413,7 @@ namespace MapleRobots
             mre_PickUp.Set();
         }
 
-        internal static void selling()
+        internal void selling()
         {
             //dmBotting = new QfDm();
             object outX, outY;
