@@ -100,7 +100,7 @@ namespace MapleRobots
             _source = HwndSource.FromHwnd(_windowHandle);
             _source.AddHook(HwndHook);
 
-            //RegisterHotKey(_windowHandle, HOTKEY_ID, MOD_NONE, (uint)Keys.F8); //CTRL + CAPS_LOCK
+            RegisterHotKey(_windowHandle, HOTKEY_ID, MOD_NONE, (uint)Keys.F8); //CTRL + CAPS_LOCK
 
             isBind = false;
         }
@@ -115,9 +115,9 @@ namespace MapleRobots
                     {
                         case HOTKEY_ID:
                             int vkey = (((int)lParam >> 16) & 0xFFFF);
-                            /*if (vkey == (int)Keys.F8)
-                                BindWindow();*/
-                            if (vkey == (int)HotKeyAutoAttack)
+                            if (vkey == (int)Keys.F8)
+                                BindWindow();
+                            else if (vkey == (int)HotKeyAutoAttack)
                             {
                                 if ((bool)checkBox_PressKey.IsChecked)
                                     checkBox_PressKey.IsChecked = false;
@@ -196,61 +196,13 @@ namespace MapleRobots
             textBox_HotKeyHp.Text = HpPotKey.ToString();
         }
 
-        private void comboBox_BottingCase_Loaded(object sender, RoutedEventArgs e)
+        private void comboBox_Loaded(object sender, RoutedEventArgs e)
         {
             List <string> data = new List <string> ();
-            data.Add("魚窩");
-            data.Add("籃水靈");
-            comboBox_BottingCase.ItemsSource = data;
+            data.Add("Goby");
+            comboBox.ItemsSource = data;
             // Make the first item selected.
-            comboBox_BottingCase.SelectedIndex = 0;
-        }
-
-        private void comboBox_Process_Loaded(object sender, RoutedEventArgs e)
-        {
-            int counter = 0;
-            List<string> data = new List<string>();
-            Process[] processlist = Process.GetProcesses();
-
-            foreach (Process theprocess in processlist)
-            {
-                //Console.WriteLine("Process: {0} ID: {1}", theprocess.ProcessName, theprocess.Id);
-                if (theprocess.ProcessName.Contains(".tmp"))
-                {
-                    data.Add(theprocess.ProcessName);
-                    counter++;
-                }
-            }
-            if (counter <= 0)
-            {
-                foreach (Process theprocess in processlist)
-                {
-                    //Console.WriteLine("Process: {0} ID: {1}", theprocess.ProcessName, theprocess.Id);
-                    if (theprocess.ProcessName.Contains("MapleRoyals"))
-                    {
-                        data.Add(theprocess.ProcessName);
-                    }
-
-                }
-            }
-            comboBox_Process.ItemsSource = data;
-            // Make the first item selected.
-            comboBox_Process.SelectedIndex = -1;
-        }
-
-        private void comboBox_Process_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
-        {
-            Process[] processlist = Process.GetProcesses();
-
-            foreach (Process theprocess in processlist)
-            {
-                //Console.WriteLine("Process: {0} ID: {1}", theprocess.ProcessName, theprocess.Id);
-                if (theprocess.ProcessName == comboBox_Process.SelectedItem.ToString())
-                {
-                    BindWindow(theprocess);
-                    comboBox_Process.IsEnabled = false;
-                }
-            }
+            comboBox.SelectedIndex = 0;
         }
 
         private void textBox_HotKeyBotting_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
@@ -341,21 +293,20 @@ namespace MapleRobots
                 if (_threadOfBotting == null && getPointFromDB(InGameName, 0) > 0)
                 {
                     timer2.Start();
-                    if (comboBox_BottingCase.SelectedIndex == -1)
+                    if (comboBox.SelectedIndex == -1)
                     {
                         timer2.Stop();
                         checkBox_Botting.IsChecked = false;
                         System.Windows.Forms.MessageBox.Show("請先選擇練功地點");
                         return;
                     }
-                    else if (comboBox_BottingCase.SelectedItem.ToString() == "魚窩")
+                    else if (comboBox.SelectedIndex == 0)
                     {
-                        Botting.dmBotting = new QfDm();
                         _threadOfBotting = new Thread(Botting.bottingGoby);
                     }
                     _threadOfBotting.Start();
                     button_keySetting.IsEnabled = false;
-                    comboBox_BottingCase.IsReadOnly = true;
+                    comboBox.IsReadOnly = true;
                 }
                 else
                 {
@@ -366,7 +317,7 @@ namespace MapleRobots
                     checkBox_Botting.IsEnabled = false;
                     textBox_HotKeyBotting.IsEnabled = false;
                     button_keySetting.IsEnabled = false;
-                    comboBox_BottingCase.IsEnabled = false;
+                    comboBox.IsEnabled = false;
                     return;
                 }
             }
@@ -385,7 +336,7 @@ namespace MapleRobots
             }
             timer2.Stop();
             button_keySetting.IsEnabled = true;
-            comboBox_BottingCase.IsReadOnly = false;
+            comboBox.IsReadOnly = false;
         }
 
         private void timer1_Tick(object sender, EventArgs e)
@@ -441,7 +392,7 @@ namespace MapleRobots
                 checkBox_Botting.IsEnabled = false;
                 textBox_HotKeyBotting.IsEnabled = false;
                 button_keySetting.IsEnabled = false;
-                comboBox_BottingCase.IsEnabled = false;
+                comboBox.IsEnabled = false;
             }
         }
 
@@ -604,14 +555,14 @@ namespace MapleRobots
             }
         }
 
-        private void BindWindow(Process process)
+        private void BindWindow()
         {
             dm = new QfDm();
-            WindowHwnd = (int)process.MainWindowHandle;
+            WindowHwnd = dm.DM.GetForegroundWindow();
             botting = new Botting();
             Botting.WindowHwnd = WindowHwnd;
             WindowReadData.WindowHwnd = WindowHwnd;
-            WindowTitle = process.MainWindowTitle;
+            WindowTitle = dm.DM.GetWindowTitle(WindowHwnd);
             dm_ret = dm.DM.SetWindowState(WindowHwnd, 1);
             dm_ret = dm.DM.BindWindow(WindowHwnd, "normal", "normal", "normal", 0);
             /*
@@ -621,11 +572,6 @@ namespace MapleRobots
             if (WindowHwnd == 0 || WindowTitle == null)
             {
                 System.Windows.Forms.MessageBox.Show("視窗綁定失敗");
-                return;
-            }
-            else if (!WindowTitle.Contains("MapleRoyals"))
-            {
-                System.Windows.Forms.MessageBox.Show("此程式僅適用於MapleRoyals");
                 return;
             }
 
@@ -643,6 +589,38 @@ namespace MapleRobots
                 return;
             }
 
+            label_BindWindow.Content = ("已綁定視窗: " + WindowTitle);
+            checkBox_PressKey.IsEnabled = true;
+
+            System.Windows.Forms.Timer timer1 = new System.Windows.Forms.Timer();
+            timer1.Interval = 500;
+            timer1.Tick += new EventHandler(timer1_Tick);
+            timer1.Start();
+            timer2.Interval = 10000;
+            timer2.Tick += new EventHandler(timer2_Tick);
+            textBox_HotKeyAutoAttack.IsEnabled = true;
+            textBox_HotKeyHp.IsEnabled = true;
+            textBox_HotKeyMp.IsEnabled = true;
+            textBox_HpValue.IsEnabled = true;
+            textBox_KeyAutoAttack.IsEnabled = true;
+            textBox_MpValue.IsEnabled = true;
+            checkBox_PressKey.IsEnabled = true;
+            checkBox_UnlimitedAttack.IsEnabled = true;
+            checkBox_Potions.IsEnabled = true;
+            checkBox_NoBreath.IsEnabled = true;
+            checkBox_PickUp.IsEnabled = true;
+
+            int point = getPointFromDB(InGameName, 0);
+            labelPoint.Content = "點數: " + point;
+            if (point > 0)
+            {
+                checkBox_Botting.IsEnabled = true;
+                textBox_HotKeyBotting.IsEnabled = true;
+                button_keySetting.IsEnabled = true;
+                comboBox.IsEnabled = true;
+            }
+
+            UnregisterHotKey(_windowHandle, HOTKEY_ID);
             if (File.Exists(".\\" + filename))
             {
                 try
@@ -816,33 +794,6 @@ namespace MapleRobots
                 {
                     System.Windows.Forms.MessageBox.Show("設定檔錯誤，請刪除data.ini後再嘗試一次");
                 }
-            }
-            System.Windows.Forms.Timer timer1 = new System.Windows.Forms.Timer();
-            timer1.Interval = 500;
-            timer1.Tick += new EventHandler(timer1_Tick);
-            timer1.Start();
-            timer2.Interval = 10000;
-            timer2.Tick += new EventHandler(timer2_Tick);
-            textBox_HotKeyAutoAttack.IsEnabled = true;
-            textBox_HotKeyHp.IsEnabled = true;
-            textBox_HotKeyMp.IsEnabled = true;
-            textBox_HpValue.IsEnabled = true;
-            textBox_KeyAutoAttack.IsEnabled = true;
-            textBox_MpValue.IsEnabled = true;
-            checkBox_PressKey.IsEnabled = true;
-            checkBox_UnlimitedAttack.IsEnabled = true;
-            checkBox_Potions.IsEnabled = true;
-            checkBox_NoBreath.IsEnabled = true;
-            checkBox_PickUp.IsEnabled = true;
-
-            int point = getPointFromDB(InGameName, 0);
-            labelPoint.Content = "點數: " + point;
-            if (point > 0)
-            {
-                checkBox_Botting.IsEnabled = true;
-                textBox_HotKeyBotting.IsEnabled = true;
-                button_keySetting.IsEnabled = true;
-                comboBox_BottingCase.IsEnabled = true;
             }
             isBind = true;
         }
