@@ -34,7 +34,7 @@ namespace MapleRobots
         {
             _dmPath = dmpath;
             _urCom = new URCOMLoader();
-            _dm = _urCom.CreateObjectFromPath(dmpath, Guid.Parse("26037A0E-7CBD-4FFF-9C63-56F2D0770214"), false) as Idmsoft;
+            _dm = (Idmsoft)_urCom.CreateObjectFromPath(dmpath, Guid.Parse("26037A0E-7CBD-4FFF-9C63-56F2D0770214"), false);
         }
 
         public Idmsoft DM
@@ -122,7 +122,7 @@ namespace MapleRobots
         [DllImport("kernel32.dll", CharSet = CharSet.Auto)]
         public static extern bool FreeLibrary(IntPtr hModule);
 
-        [DllImport("kernel32", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
+        [DllImport("kernel32.dll", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
         public static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
     }
 
