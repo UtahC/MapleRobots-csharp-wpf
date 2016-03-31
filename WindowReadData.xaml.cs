@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Windows;
@@ -23,7 +24,7 @@ namespace MapleRobots
         {
             InitializeComponent();
             System.Windows.Forms.Timer timer1 = new System.Windows.Forms.Timer();
-            timer1.Interval = 500;
+            timer1.Interval = 100;
             timer1.Tick += new EventHandler(timer1_Tick);
             timer1.Start();
         }
@@ -42,6 +43,8 @@ namespace MapleRobots
                 label_CharacterStates.Content = "角色狀態: " + Hack.ReadInt(MainWindow.process, MainWindow.CharacterStatusBaseAdr, MainWindow.CharacterStatusOffset);
                 label_CharacterX.Content = "角色X座標: " + Hack.ReadInt(MainWindow.process, MainWindow.CharacterXBaseAdr, MainWindow.CharacterXOffset);
                 label_CharacterY.Content = "角色Y座標: " + Hack.ReadInt(MainWindow.process, MainWindow.CharacterYBaseAdr, MainWindow.CharacterYOffset);
+                //int a = Hack.ReadInt(MainWindow.process, MainWindow.CharacterYBaseAdr, MainWindow.CharacterYOffset);
+                //if (a < 53) Debug.Write(a + " ");
                 label_MapID.Content = "地圖編號: " + Hack.ReadInt(MainWindow.process, MainWindow.MapIDBaseAdr, MainWindow.MapIDOffset);
             }
         }

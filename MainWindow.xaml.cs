@@ -31,10 +31,6 @@ namespace MapleRobots
         [DllImport("kernel32", CharSet = CharSet.Unicode)]
         private static extern long WritePrivateProfileString(string section,
         string key, string val, string filePath);
-        [DllImport("kernel32", CharSet = CharSet.Unicode)]
-        private static extern int GetPrivateProfileString(string section,
-        string key, string def, StringBuilder retVal,
-        int size, string filePath);
 
         private const int HOTKEY_ID = 9000;
 
@@ -75,21 +71,21 @@ namespace MapleRobots
         internal static int CharacterNameOffset { get { return 0x4; } }
         internal static int DoorXBaseAdr { get { return 0x0097EF4C; } }
         internal static int DoorYBaseAdr { get { return 0x0097EF50; } }
-        internal static Keys KeyWantToPress { get; set; }
         internal static IntPtr WindowHwnd { get; set; }
         internal static bool isBind { get; set; }
 
-        internal static int delayComboKey1, delayComboKey2;
+        internal static int delayComboKey1, delayComboKey2, delaySkill1, delaySkill2, timeSkill1, timeSkill2;
         internal static Keys keyTeleport, keyAttack, keyDoor, keyPickUp, keySkill, keyCombo1, keyCombo2, keyJump;
+        internal static Keys keyWantToPress, keySkill1, keySkill2;
         internal static string InGameName;
         internal static WindowHotKey windowhotkey;
         internal static Process process;
         private String WindowTitle;
         private Keys HpPotKey, MpPotKey, HotKeyAutoAttack, HotKeyBotting;
         private Thread _threadOfKeyPresser, _threadOfBotting, _threadOfPickUp, _threadOfAlarmForPlayer;
+        private Thread _threadOfSkill1, _threadOfSkill2, _threadOfBossing, _threadOfSelling;
         private int HpBelow, MpBelow, PlayerCountAlarm;
         private string filename = "data.ini";
-        Botting botting;
 
 
         private ManualResetEvent mre_AlarmForPlayer = new ManualResetEvent(true);
@@ -168,13 +164,22 @@ namespace MapleRobots
                 _threadOfPickUp.Abort();
             if (_threadOfAlarmForPlayer != null && _threadOfAlarmForPlayer.IsAlive)
                 _threadOfAlarmForPlayer.Abort();
-            if (Botting._threadOfTraining != null && Botting._threadOfTraining.IsAlive)
-                Botting._threadOfTraining.Abort();
+            if (BottingBase._threadOfTraining != null && BottingBase._threadOfTraining.IsAlive)
+                BottingBase._threadOfTraining.Abort();
             if (windowhotkey != null)
                 windowhotkey.Close();
-            
+            Hack.KeyUp(WindowHwnd, Keys.Up);
+            Hack.KeyUp(WindowHwnd, Keys.Down);
+            Hack.KeyUp(WindowHwnd, Keys.Left);
+            Hack.KeyUp(WindowHwnd, Keys.Right);
             WritePrivateProfileString(InGameName, "KeyAutoAttack", textBox_KeyAutoAttack.Text, ".\\" + filename);
             WritePrivateProfileString(InGameName, "HotKeyAutoAttack", textBox_HotKeyAutoAttack.Text, ".\\" + filename);
+            WritePrivateProfileString(InGameName, "KeySkill1", textBox_KeySkill1.Text, ".\\" + filename);
+            WritePrivateProfileString(InGameName, "Skill1Delay", textBox_SkillDelay1.Text, ".\\" + filename);
+            WritePrivateProfileString(InGameName, "Skill1Time", textBox_SkillTime1.Text, ".\\" + filename);
+            WritePrivateProfileString(InGameName, "KeySkill2", textBox_KeySkill2.Text, ".\\" + filename);
+            WritePrivateProfileString(InGameName, "Skill2Delay", textBox_SkillDelay2.Text, ".\\" + filename);
+            WritePrivateProfileString(InGameName, "Skill2Time", textBox_SkillTime2.Text, ".\\" + filename);
             WritePrivateProfileString(InGameName, "HotKeyBotting", textBox_HotKeyBotting.Text, ".\\" + filename);
             WritePrivateProfileString(InGameName, "HpValue", textBox_HpValue.Text, ".\\" + filename);
             WritePrivateProfileString(InGameName, "HotKeyHp", textBox_HotKeyHp.Text, ".\\" + filename);
@@ -197,12 +202,11 @@ namespace MapleRobots
 
         private void textBox_KeyAutoAttack_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            if (e.Key == System.Windows.Input.Key.System)
-                KeyWantToPress = Keys.Menu;
+            if (e.Key == Key.System)
+                keyWantToPress = Keys.Menu;
             else
-                KeyWantToPress = (Keys)KeyInterop.VirtualKeyFromKey(e.Key);
-            botting.KeyWantToPress = KeyWantToPress;
-            textBox_KeyAutoAttack.Text = KeyWantToPress.ToString();
+                keyWantToPress = (Keys)KeyInterop.VirtualKeyFromKey(e.Key);
+            textBox_KeyAutoAttack.Text = keyWantToPress.ToString();
         }
 
         private void textBox_HotKeyHp_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
@@ -211,17 +215,201 @@ namespace MapleRobots
             textBox_HotKeyHp.Text = HpPotKey.ToString();
         }
 
+        private void textBox_KeySkill1_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            keySkill1 = (Keys)KeyInterop.VirtualKeyFromKey(e.Key);
+            textBox_KeySkill1.Text = keySkill1.ToString();
+        }
+
+        private void textBox_KeySkill2_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            keySkill2 = (Keys)KeyInterop.VirtualKeyFromKey(e.Key);
+            textBox_KeySkill2.Text = keySkill2.ToString();
+        }
+
+        private void textBox_SkillDelay1_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            if (textBox_SkillDelay1.Text == "延遲")
+                return;
+            else
+            {
+                try
+                {
+                    delaySkill1 = int.Parse(textBox_SkillDelay1.Text);
+                }
+                catch
+                {
+                    Hack.ShowMessageBox("請輸入數字");
+                }
+            }
+        }
+
+        private void textBox_SkillDelay2_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            if (textBox_SkillDelay2.Text == "延遲")
+                return;
+            else
+            {
+                try
+                {
+                    delaySkill2 = int.Parse(textBox_SkillDelay2.Text);
+                }
+                catch
+                {
+                    Hack.ShowMessageBox("請輸入數字");
+                }
+            }
+        }
+
+        private void textBox_SkillTime1_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            if (textBox_SkillTime1.Text == "秒/次")
+                return;
+            else
+            {
+                try
+                {
+                    timeSkill1 = int.Parse(textBox_SkillTime1.Text);
+                }
+                catch
+                {
+                    Hack.ShowMessageBox("請輸入數字");
+                }
+            }
+        }
+
+        private void textBox_SkillTime2_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            if (textBox_SkillTime2.Text == "秒/次")
+                return;
+            else
+            {
+                try
+                {
+                    timeSkill2 = int.Parse(textBox_SkillTime2.Text);
+                }
+                catch
+                {
+                    Hack.ShowMessageBox("請輸入數字");
+                }
+            }
+        }
+
+        private void checkBox_PressKeySkill1_Checked(object sender, RoutedEventArgs e)
+        {
+            if (_threadOfSkill1 == null)
+            {
+                _threadOfSkill1 = new Thread(AutoKey.Skill1);
+                _threadOfSkill1.Start();
+            }
+        }
+
+        private void checkBox_PressKeySkill1_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (_threadOfSkill1 != null)
+            {
+                _threadOfSkill1.Abort();
+                _threadOfSkill1 = null;
+            }
+        }
+
+        private void checkBox_PressKeySkill2_Checked(object sender, RoutedEventArgs e)
+        {
+            if (_threadOfSkill2 == null)
+            {
+                _threadOfSkill2 = new Thread(AutoKey.Skill2);
+                _threadOfSkill2.Start();
+            }
+        }
+
+        private void checkBox_PressKeySkill2_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (_threadOfSkill2 != null)
+            {
+                _threadOfSkill2.Abort();
+                _threadOfSkill2 = null;
+            }
+        }
+
+        private void button_Selling_Click(object sender, RoutedEventArgs e)
+        {
+            _threadOfSelling = new Thread(Store.selling);
+            _threadOfSelling.Start();
+        }
+
+        private void checkBox_Bossing_Checked(object sender, RoutedEventArgs e)
+        {
+            if (radioButton_BossingFaceBoth.IsChecked == true)
+                Bossing.bossingFaceTo = 0;
+            else if (radioButton_BossingFaceLeft.IsChecked == true)
+                Bossing.bossingFaceTo = 1;
+            else if (radioButton_BossingFaceRight.IsChecked == true)
+                Bossing.bossingFaceTo = 2;
+            if (_threadOfBossing == null)
+            {
+                Hack.SetForegroundWindow(WindowHwnd);
+                _threadOfBossing = new Thread(Bossing.bossing);
+                _threadOfBossing.Start();
+            }
+        }
+
+        private void checkBox_Bossing_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (_threadOfBossing != null)
+            {
+                _threadOfBossing.Abort();
+                _threadOfBossing = null;
+                Hack.KeyUp(WindowHwnd, Keys.Left);
+                Hack.KeyUp(WindowHwnd, Keys.Right);
+            }
+        }
+
         private void comboBox_BottingCase_Loaded(object sender, RoutedEventArgs e)
         {
             List <string> data = new List <string> ();
-            data.Add("魚窩");
+            
             data.Add("籃水靈");
-            data.Add("大幽靈");
             data.Add("黑肥肥");
             data.Add("發條熊");
+            data.Add("小幽靈");
+            data.Add("進化妖魔");
+            data.Add("妖魔隊長");
+            data.Add("大幽靈");
+            data.Add("GS1");
+            data.Add("GS5");
+            data.Add("GS2");
+            data.Add("WS");
+            data.Add("魚窩");
+            data.Add("ULU1");
+            data.Add("ULU2");
+            data.Add("烏賊");
+            data.Add("石頭人");
+            data.Add("骨龍");
             comboBox_BottingCase.ItemsSource = data;
             // Make the first item selected.
             comboBox_BottingCase.SelectedIndex = 0;
+        }
+
+        private void comboBox_BottingCase_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            if (comboBox_BottingCase.SelectedItem.ToString() == "ULU2" ||
+                comboBox_BottingCase.SelectedItem.ToString() == "石頭人" ||
+                comboBox_BottingCase.SelectedItem.ToString() == "骨龍" ||
+                comboBox_BottingCase.SelectedItem.ToString() == "烏賊")
+                comboBox_BottingHits.Visibility = Visibility.Visible;
+            else
+                comboBox_BottingHits.Visibility = Visibility.Hidden;
+                
+        }
+
+        private void comboBox_BottingHits_Loaded(object sender, RoutedEventArgs e)
+        {
+            List<string> data = new List<string>();
+            data.Add("1hit");
+            data.Add("2hit");
+            comboBox_BottingHits.ItemsSource = data;
+            // Make the first item selected.
+            comboBox_BottingHits.SelectedIndex = 0;
         }
 
         private void comboBox_Process_Loaded(object sender, RoutedEventArgs e)
@@ -295,37 +483,52 @@ namespace MapleRobots
 
         private void textBox_HpValue_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            try
+            if (textBox_HpValue.Text == "")
+                return;
+            else
             {
-                HpBelow = int.Parse(textBox_HpValue.Text);
-            }
-            catch
-            {
-                Hack.ShowMessageBox("請輸入數字");
+                try
+                {
+                    HpBelow = int.Parse(textBox_HpValue.Text);
+                }
+                catch
+                {
+                    Hack.ShowMessageBox("請輸入數字");
+                }
             }
         }
 
         private void textBox_MpValue_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            try
+            if (textBox_MpValue.Text == "")
+                return;
+            else
             {
-                MpBelow = int.Parse(textBox_MpValue.Text);
-            }
-            catch
-            {
-                Hack.ShowMessageBox("請輸入數字");
+                try
+                {
+                    MpBelow = int.Parse(textBox_MpValue.Text);
+                }
+                catch
+                {
+                    Hack.ShowMessageBox("請輸入數字");
+                }
             }
         }
 
         private void textBox_PlayerAlarm_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            try
+            if (textBox_PlayerAlarm.Text == "")
+                return;
+            else
             {
-                PlayerCountAlarm = int.Parse(textBox_PlayerAlarm.Text);
-            }
-            catch
-            {
-                Hack.ShowMessageBox("請輸入數字");
+                try
+                {
+                    PlayerCountAlarm = int.Parse(textBox_PlayerAlarm.Text);
+                }
+                catch
+                {
+                    Hack.ShowMessageBox("請輸入數字");
+                }
             }
         }
 
@@ -333,22 +536,22 @@ namespace MapleRobots
         {
             if (_threadOfKeyPresser == null)
             {
-                _threadOfKeyPresser = new Thread(botting.KeyPresser);
+                _threadOfKeyPresser = new Thread(AutoKey.KeyPresser);
                 _threadOfKeyPresser.Start();
             }
-            Botting.mre_KeyPresser.Set();
+            AutoKey.mre_KeyPresser.Set();
         }
 
         private void checkBox_PressKey_Unchecked(object sender, RoutedEventArgs e)
         {
-            Botting.mre_KeyPresser.Reset();
+            AutoKey.mre_KeyPresser.Reset();
         }
 
         private void checkBox_PickUp_Checked(object sender, RoutedEventArgs e)
         {
             if (_threadOfPickUp == null)
             {
-                _threadOfPickUp = new Thread(botting.PickUp);
+                _threadOfPickUp = new Thread(AutoKey.PickUp);
                 _threadOfPickUp.Start();
             }
         }
@@ -387,28 +590,70 @@ namespace MapleRobots
                     }
                     else if (comboBox_BottingCase.SelectedItem.ToString() == "魚窩")
                     {
-                        _threadOfBotting = new Thread(Botting.bottingGoby);
+                        _threadOfBotting = new Thread(BottingGoby.bottingGoby);
                     }
                     else if (comboBox_BottingCase.SelectedItem.ToString() == "籃水靈")
                     {
-                        _threadOfBotting = new Thread(Botting.bottingBubbling);
+                        _threadOfBotting = new Thread(BottingBubbling.bottingBubbling);
                     }
                     else if (comboBox_BottingCase.SelectedItem.ToString() == "黑肥肥")
                     {
-                        _threadOfBotting = new Thread(Botting.bottingWildBoar);
+                        _threadOfBotting = new Thread(BottingWildBoar.bottingWildBoar);
                     }
                     else if (comboBox_BottingCase.SelectedItem.ToString() == "發條熊")
                     {
-                        _threadOfBotting = new Thread(Botting.bottingTeddy);
+                        _threadOfBotting = new Thread(BottingTeddy.bottingTeddy);
+                    }
+                    else if (comboBox_BottingCase.SelectedItem.ToString() == "小幽靈")
+                    {
+                        _threadOfBotting = new Thread(BottingJrWraith.bottingJrWraith);
+                    }
+                    else if (comboBox_BottingCase.SelectedItem.ToString() == "進化妖魔")
+                    {
+                        _threadOfBotting = new Thread(BottingPlattonChronos.bottingPlatoonChronos);
+                    }
+                    else if (comboBox_BottingCase.SelectedItem.ToString() == "妖魔隊長")
+                    {
+                        _threadOfBotting = new Thread(BottingMasterChronos.bottingPlatoonChronos);
                     }
                     else if (comboBox_BottingCase.SelectedItem.ToString() == "大幽靈")
                     {
-                        _threadOfBotting = new Thread(Botting.bottingWraith);
+                        _threadOfBotting = new Thread(BottingWraith.bottingWraith);
+                    }
+                    else if (comboBox_BottingCase.SelectedItem.ToString() == "GS1")
+                    {
+                        _threadOfBotting = new Thread(BottingGhostShip1.bottingGS1);
+                    }
+                    else if (comboBox_BottingCase.SelectedItem.ToString() == "GS5")
+                    {
+                        _threadOfBotting = new Thread(BottingGhostShip5.bottingGS5);
+                    }
+                    else if (comboBox_BottingCase.SelectedItem.ToString() == "GS2")
+                    {
+                        _threadOfBotting = new Thread(BottingGhostShip2.bottingGS2);
+                    }
+                    else if (comboBox_BottingCase.SelectedItem.ToString() == "WS")
+                    {
+                        _threadOfBotting = new Thread(BottingWolfSpider.botting);
+                    }
+                    else if (comboBox_BottingCase.SelectedItem.ToString() == "ULU1")
+                    {
+                        _threadOfBotting = new Thread(BottingULU1.botting);
+                    }
+                    else if (comboBox_BottingCase.SelectedItem.ToString() == "ULU2")
+                    {
+                        if (comboBox_BottingHits.SelectedItem.ToString() == "2hit")
+                            BottingULU2.hit = 2;
+                        _threadOfBotting = new Thread(BottingULU2.botting);
                     }
                     Hack.SetForegroundWindow(WindowHwnd);
                     _threadOfBotting.Start();
                     button_keySetting.IsEnabled = false;
                     comboBox_BottingCase.IsReadOnly = true;
+                    checkBox_PlayerAlarm.IsEnabled = false;
+                    textBox_PlayerAlarm.IsEnabled = false;
+                    button_Selling.IsEnabled = false;
+                    checkBox_PickUp.IsEnabled = false;
                     return;
                 }
                 else
@@ -421,6 +666,10 @@ namespace MapleRobots
                     textBox_HotKeyBotting.IsEnabled = false;
                     button_keySetting.IsEnabled = false;
                     comboBox_BottingCase.IsEnabled = false;
+                    checkBox_PlayerAlarm.IsEnabled = false;
+                    textBox_PlayerAlarm.IsEnabled = false;
+                    button_Selling.IsEnabled = false;
+                    checkBox_PickUp.IsEnabled = false;
                     return;
                 }
             }
@@ -432,14 +681,18 @@ namespace MapleRobots
                 _threadOfBotting.Abort();
                 _threadOfBotting = null;
             }
-            if (Botting._threadOfTraining != null)
+            if (BottingBase._threadOfTraining != null)
             {
-                Botting._threadOfTraining.Abort();
-                Botting._threadOfTraining = null;
+                BottingBase._threadOfTraining.Abort();
+                BottingBase._threadOfTraining = null;
             }
             timer2.Stop();
             button_keySetting.IsEnabled = true;
             comboBox_BottingCase.IsReadOnly = false;
+            checkBox_PlayerAlarm.IsEnabled = true;
+            textBox_PlayerAlarm.IsEnabled = true;
+            button_Selling.IsEnabled = true;
+            checkBox_PickUp.IsEnabled = true;
             Hack.KeyUp(WindowHwnd, Keys.Up);
             Hack.KeyUp(WindowHwnd, Keys.Left);
             Hack.KeyUp(WindowHwnd, Keys.Right);
@@ -452,17 +705,15 @@ namespace MapleRobots
                 Hack.WriteInt(process, AttackCountBaseAdr, AttackCountOffset, 0);
             if ((bool)checkBox_Potions.IsChecked)
             {
-                if (Hack.ReadInt(process, HpAlarmBaseAdr, HpAlarmOffset) == 0)
-                    Hack.WriteInt(process, HpAlarmBaseAdr, HpAlarmOffset, 1);
-                if (Hack.ReadInt(process, MpAlarmBaseAdr, MpAlarmOffset) == 0)
-                    Hack.WriteInt(process, MpAlarmBaseAdr, MpAlarmOffset, 1);
+                if (Hack.ReadInt(process, HpAlarmBaseAdr, HpAlarmOffset) != 20)
+                    Hack.WriteInt(process, HpAlarmBaseAdr, HpAlarmOffset, 20);
+                if (Hack.ReadInt(process, MpAlarmBaseAdr, MpAlarmOffset) != 20)
+                    Hack.WriteInt(process, MpAlarmBaseAdr, MpAlarmOffset, 20);
                 if (HpPotKey != Keys.None && HpBelow > 0)
-                    if (Hack.ReadInt(process, HpValueBaseAdr, HpValueOffset) / 
-                        Hack.ReadInt(process, HpAlarmBaseAdr, HpAlarmOffset) * 20 < HpBelow)
+                    if (Hack.ReadInt(process, HpValueBaseAdr, HpValueOffset) < HpBelow)
                         Hack.KeyPress((IntPtr)WindowHwnd, HpPotKey);
                 if (MpPotKey != Keys.None && MpBelow > 0)
-                    if (Hack.ReadInt(process, HpValueBaseAdr, HpValueOffset) / 
-                        Hack.ReadInt(process, HpAlarmBaseAdr, HpAlarmOffset) * 20 < MpBelow)
+                    if (Hack.ReadInt(process, MpValueBaseAdr, MpValueOffset) < MpBelow)
                         Hack.KeyPress((IntPtr)WindowHwnd, MpPotKey);
             }
             if ((bool)checkBox_NoBreath.IsChecked)
@@ -483,14 +734,23 @@ namespace MapleRobots
                     mre_AlarmForPlayer.Reset();
                 }
             }
+            else
+            {
+                mre_AlarmForPlayer.Reset();
+            }
             if (Hack.GetForegroundWindowHwnd() != WindowHwnd)
+            {
+                checkBox_Bossing.IsChecked = false;
                 checkBox_Botting.IsChecked = false;
+            }
             if (Hack.ReadString(process, CharacterNameBaseAdr, CharacterNameOffset, 15) != InGameName)
             {
                 this.Close();
             }
-            if (checkBox_Botting.IsEnabled == false)
-                checkBox_Botting.IsEnabled = true;
+            if (checkBox_Bossing.IsChecked == true && _threadOfBossing.IsAlive == false)
+                checkBox_Bossing.IsChecked = false;
+            //if (checkBox_Botting.IsEnabled == false)
+                //checkBox_Botting.IsEnabled = true;
         }
 
         private void timer2_Tick(object sender, EventArgs e)
@@ -681,8 +941,7 @@ namespace MapleRobots
         private void BindWindow(Process process)
         {
             WindowHwnd = process.MainWindowHandle;
-            botting = new Botting();
-            Botting.WindowHwnd = WindowHwnd;
+            BottingBase.WindowHwnd = WindowHwnd;
             WindowReadData.WindowHwnd = WindowHwnd;
             WindowTitle = process.MainWindowTitle;
             Hack.SetForegroundWindow(WindowHwnd);
@@ -715,187 +974,76 @@ namespace MapleRobots
             {
                 try
                 {
-                    StringBuilder stringBuilder = new StringBuilder(30);
-                    GetPrivateProfileString(InGameName, "KeyAutoAttack", "", stringBuilder, 30, ".\\" + filename);
-                    if (Regex.IsMatch(stringBuilder.ToString(), "^[a-zA-Z0-9]*$") && stringBuilder.ToString() != "")
-                    {
-                        Keys key;
-                        textBox_KeyAutoAttack.Text = stringBuilder.ToString();
-                        Enum.TryParse(textBox_KeyAutoAttack.Text, out key);
-                        KeyWantToPress = key;
-                        botting.KeyWantToPress = KeyWantToPress;
-                    }
-                    else
-                        textBox_KeyAutoAttack.Text = "攻擊鍵";
-                    stringBuilder.Clear();
-                    GetPrivateProfileString(InGameName, "HotKeyAutoAttack", "", stringBuilder, 30, ".\\" + filename);
-                    if (Regex.IsMatch(stringBuilder.ToString(), "^[a-zA-Z0-9]*$") && stringBuilder.ToString() != "")
-                    {
-                        textBox_HotKeyAutoAttack.Text = stringBuilder.ToString();
-                        Enum.TryParse(textBox_HotKeyAutoAttack.Text, out HotKeyAutoAttack);
-                        RegisterHotKey(_windowHandle, HOTKEY_ID, MOD_NONE, (uint)HotKeyAutoAttack);
-                    }
-                    else
-                        textBox_HotKeyAutoAttack.Text = "開關熱鍵";
-                    stringBuilder.Clear();
-                    GetPrivateProfileString(InGameName, "HotKeyBotting", "", stringBuilder, 30, ".\\" + filename);
-                    if (Regex.IsMatch(stringBuilder.ToString(), "^[a-zA-Z0-9]*$") && stringBuilder.ToString() != "")
-                    {
-                        textBox_HotKeyBotting.Text = stringBuilder.ToString();
-                        Enum.TryParse(textBox_HotKeyBotting.Text, out HotKeyBotting);
-                        RegisterHotKey(_windowHandle, HOTKEY_ID + 1, MOD_NONE, (uint)HotKeyBotting);
-                    }
-                    else
-                        textBox_HotKeyAutoAttack.Text = "開關熱鍵";
-                    stringBuilder.Clear();
-                    GetPrivateProfileString(InGameName, "HpValue", "", stringBuilder, 30, ".\\" + filename);
-                    if (Regex.IsMatch(stringBuilder.ToString(), "^[0-9]*$") && stringBuilder.ToString() != "")
-                    {
-                        try
-                        {
-                            textBox_HpValue.Text = stringBuilder.ToString();
-                            HpBelow = Convert.ToInt32(textBox_HpValue.Text);
-                        }
-                        catch
-                        {
-                            textBox_HpValue.Text = "";
-                            HpBelow = 0;
-                        }
-                    }
-                    else
-                        textBox_HpValue.Text = "";
-                    stringBuilder.Clear();
-                    GetPrivateProfileString(InGameName, "HotKeyHp", "", stringBuilder, 30, ".\\" + filename);
-                    if (Regex.IsMatch(stringBuilder.ToString(), "^[a-zA-Z0-9]*$") && stringBuilder.ToString() != "")
-                    {
-                        textBox_HotKeyHp.Text = stringBuilder.ToString();
-                        Enum.TryParse(textBox_HotKeyHp.Text, out HpPotKey);
-                    }
-                    else
-                        textBox_HotKeyHp.Text = "補血熱鍵";
-                    stringBuilder.Clear();
-                    GetPrivateProfileString(InGameName, "MpValue", "", stringBuilder, 30, ".\\" + filename);
-                    if (Regex.IsMatch(stringBuilder.ToString(), "^[0-9]*$") && stringBuilder.ToString() != "")
-                    {
-                        try
-                        {
-                            textBox_MpValue.Text = stringBuilder.ToString();
-                            MpBelow = Convert.ToInt32(textBox_MpValue.Text);
-                        }
-                        catch
-                        {
-                            textBox_MpValue.Text = "";
-                            MpBelow = 0;
-                        }
-                    }
-                    else
-                        textBox_MpValue.Text = "";
-                    stringBuilder.Clear();
-                    GetPrivateProfileString(InGameName, "HotKeyMp", "", stringBuilder, 30, ".\\" + filename);
-                    if (Regex.IsMatch(stringBuilder.ToString(), "^[a-zA-Z0-9]*$") && stringBuilder.ToString() != "")
-                    {
-                        textBox_HotKeyMp.Text = stringBuilder.ToString();
-                        Enum.TryParse(textBox_HotKeyMp.Text, out MpPotKey);
-                    }
-                    else
-                        textBox_HotKeyMp.Text = "補魔熱鍵";
-                    stringBuilder.Clear();
-                    GetPrivateProfileString(InGameName, "PlayerCountAlarm", "", stringBuilder, 30, ".\\" + filename);
-                    if (Regex.IsMatch(stringBuilder.ToString(), "^[0-9]*$") && stringBuilder.ToString() != "")
-                    {
-                        try
-                        {
-                            textBox_PlayerAlarm.Text = stringBuilder.ToString();
-                            PlayerCountAlarm = Convert.ToInt32(textBox_MpValue.Text);
-                        }
-                        catch
-                        {
-                            textBox_PlayerAlarm.Text = "1";
-                            PlayerCountAlarm = 1;
-                        }
-                    }
-                    else
-                        textBox_MpValue.Text = "";
-                    stringBuilder.Clear();
-                    GetPrivateProfileString(MainWindow.InGameName, "KeyTeleport", "", stringBuilder, 30, ".\\" + filename);
-                    if (Regex.IsMatch(stringBuilder.ToString(), "^[a-zA-Z0-9]*$") && stringBuilder.ToString() != "")
-                    {
-                        Keys key;
-                        Enum.TryParse(stringBuilder.ToString(), out key);
-                        keyTeleport = key;
-                    }
-                    stringBuilder.Clear();
-                    GetPrivateProfileString(MainWindow.InGameName, "KeyPickUp", "", stringBuilder, 30, ".\\" + filename);
-                    if (Regex.IsMatch(stringBuilder.ToString(), "^[a-zA-Z0-9]*$") && stringBuilder.ToString() != "")
-                    {
-                        Keys key;
-                        Enum.TryParse(stringBuilder.ToString(), out key);
-                        MainWindow.keyPickUp = key;
-                    }
-                    stringBuilder.Clear();
-                    GetPrivateProfileString(MainWindow.InGameName, "KeyAttack", "", stringBuilder, 30, ".\\" + filename);
-                    if (Regex.IsMatch(stringBuilder.ToString(), "^[a-zA-Z0-9]*$") && stringBuilder.ToString() != "")
-                    {
-                        Keys key;
-                        Enum.TryParse(stringBuilder.ToString(), out key);
-                        MainWindow.keyAttack = key;
-                    }
-                    stringBuilder.Clear();
-                    GetPrivateProfileString(MainWindow.InGameName, "KeyJump", "", stringBuilder, 30, ".\\" + filename);
-                    if (Regex.IsMatch(stringBuilder.ToString(), "^[a-zA-Z0-9]*$") && stringBuilder.ToString() != "")
-                    {
-                        Keys key;
-                        Enum.TryParse(stringBuilder.ToString(), out key);
-                        MainWindow.keyJump = key;
-                    }
-                    stringBuilder.Clear();
-                    GetPrivateProfileString(MainWindow.InGameName, "KeyDoor", "", stringBuilder, 30, ".\\" + filename);
-                    if (Regex.IsMatch(stringBuilder.ToString(), "^[a-zA-Z0-9]*$") && stringBuilder.ToString() != "")
-                    {
-                        Keys key;
-                        Enum.TryParse(stringBuilder.ToString(), out key);
-                        MainWindow.keyDoor = key;
-                    }
-                    stringBuilder.Clear();
-                    GetPrivateProfileString(MainWindow.InGameName, "KeySkill", "", stringBuilder, 30, ".\\" + filename);
-                    if (Regex.IsMatch(stringBuilder.ToString(), "^[a-zA-Z0-9]*$") && stringBuilder.ToString() != "")
-                    {
-                        Keys key;
-                        Enum.TryParse(stringBuilder.ToString(), out key);
-                        MainWindow.keySkill = key;
-                    }
-                    stringBuilder.Clear();
-                    GetPrivateProfileString(MainWindow.InGameName, "KeyCombo1", "", stringBuilder, 30, ".\\" + filename);
-                    if (Regex.IsMatch(stringBuilder.ToString(), "^[a-zA-Z0-9]*$") && stringBuilder.ToString() != "")
-                    {
-                        Keys key;
-                        Enum.TryParse(stringBuilder.ToString(), out key);
-                        MainWindow.keyCombo1 = key;
-                    }
-                    stringBuilder.Clear();
-                    GetPrivateProfileString(MainWindow.InGameName, "KeyCombo2", "", stringBuilder, 30, ".\\" + filename);
-                    if (Regex.IsMatch(stringBuilder.ToString(), "^[a-zA-Z0-9]*$") && stringBuilder.ToString() != "")
-                    {
-                        Keys key;
-                        Enum.TryParse(stringBuilder.ToString(), out key);
-                        MainWindow.keyCombo2 = key;
-                    }
-                    stringBuilder.Clear();
-                    GetPrivateProfileString(MainWindow.InGameName, "KeyCombo1Delay", "", stringBuilder, 30, ".\\" + filename);
-                    if (Regex.IsMatch(stringBuilder.ToString(), "^[0-9]*$") && stringBuilder.ToString() != "")
-                    {
-                        int delay;
-                        delay = int.Parse(stringBuilder.ToString());
-                        MainWindow.delayComboKey1 = delay;
-                    }
-                    stringBuilder.Clear();
-                    GetPrivateProfileString(MainWindow.InGameName, "KeyCombo2Delay", "", stringBuilder, 30, ".\\" + filename);
-                    if (Regex.IsMatch(stringBuilder.ToString(), "^[0-9]*$") && stringBuilder.ToString() != "")
-                    {
-                        int delay;
-                        delay = int.Parse(stringBuilder.ToString());
-                        MainWindow.delayComboKey2 = delay;
-                    }
+                    Keys key;
+                    string temp;
+
+                    textBox_KeyAutoAttack.Text = Hack.iniReader(".\\" + filename, InGameName, 
+                      "KeyAutoAttack", false, "攻擊鍵", out keyWantToPress);
+
+                    textBox_HotKeyAutoAttack.Text = Hack.iniReader(".\\" + filename, InGameName,
+                      "HotKeyAutoAttack", false, "開關熱鍵", out HotKeyAutoAttack);
+                    RegisterHotKey(_windowHandle, HOTKEY_ID, MOD_NONE, (uint)HotKeyAutoAttack);//註冊熱鍵
+
+                    textBox_KeySkill1.Text = Hack.iniReader(".\\" + filename, InGameName,
+                      "KeySkill1", false, "技能熱鍵", out keySkill1);
+
+                    textBox_SkillDelay1.Text = Hack.iniReader(".\\" + filename, InGameName,
+                      "Skill1Delay", true, "延遲", out key);
+                    int.TryParse(textBox_SkillDelay1.Text, out delaySkill1);
+
+                    textBox_SkillTime1.Text = Hack.iniReader(".\\" + filename, InGameName,
+                      "Skill1Time", true, "秒/次", out key);
+                    int.TryParse(textBox_SkillTime1.Text, out timeSkill1);
+
+                    textBox_KeySkill2.Text = Hack.iniReader(".\\" + filename, InGameName,
+                      "KeySkill2", false, "技能熱鍵", out keySkill2);
+
+                    textBox_SkillDelay2.Text = Hack.iniReader(".\\" + filename, InGameName,
+                      "Skill2Delay", true, "延遲", out key);
+                    int.TryParse(textBox_SkillDelay2.Text, out delaySkill2);
+
+                    textBox_SkillTime2.Text = Hack.iniReader(".\\" + filename, InGameName,
+                      "Skill2Time", true, "秒/次", out key);
+                    int.TryParse(textBox_SkillTime2.Text, out timeSkill1);
+
+                    textBox_HotKeyBotting.Text = Hack.iniReader(".\\" + filename, InGameName,
+                      "HotKeyBotting", false, "開關熱鍵", out HotKeyBotting);
+                    RegisterHotKey(_windowHandle, HOTKEY_ID + 1, MOD_NONE, (uint)HotKeyBotting);//註冊熱鍵
+
+                    textBox_HpValue.Text = Hack.iniReader(".\\" + filename, InGameName,
+                      "HpValue", true, "0", out key);
+                    int.TryParse(textBox_HpValue.Text, out HpBelow);
+
+                    textBox_HotKeyHp.Text = Hack.iniReader(".\\" + filename, InGameName,
+                      "HotKeyHp", false, "補血熱鍵", out HpPotKey);
+
+                    textBox_MpValue.Text = Hack.iniReader(".\\" + filename, InGameName,
+                      "MpValue", true, "0", out key);
+                    int.TryParse(textBox_MpValue.Text, out MpBelow);
+
+                    textBox_HotKeyMp.Text = Hack.iniReader(".\\" + filename, InGameName,
+                      "HotKeyMp", false, "補魔熱鍵", out MpPotKey);
+
+                    textBox_PlayerAlarm.Text = Hack.iniReader(".\\" + filename, InGameName,
+                      "PlayerCountAlarm", true, "0", out key);
+                    int.TryParse(textBox_PlayerAlarm.Text, out PlayerCountAlarm);
+
+                    Hack.iniReader(".\\" + filename, InGameName, "KeyTeleport", false, "", out keyTeleport);
+                    Hack.iniReader(".\\" + filename, InGameName, "KeyPickUp", false, "", out keyPickUp);
+                    Hack.iniReader(".\\" + filename, InGameName, "KeyAttack", false, "", out keyAttack);
+                    Hack.iniReader(".\\" + filename, InGameName, "KeyJump", false, "", out keyJump);
+                    Hack.iniReader(".\\" + filename, InGameName, "KeyDoor", false, "", out keyDoor);
+                    Hack.iniReader(".\\" + filename, InGameName, "KeySkill", false, "", out keySkill);
+                    Hack.iniReader(".\\" + filename, InGameName, "KeyCombo1", false, "", out keyCombo1);
+                    Hack.iniReader(".\\" + filename, InGameName, "KeyCombo2", false, "", out keyCombo2);
+
+                    temp = Hack.iniReader(".\\" + filename, InGameName,
+                      "KeyCombo1Delay", true, "", out key);
+                    int.TryParse(temp, out delayComboKey1);
+
+                    temp = Hack.iniReader(".\\" + filename, InGameName,
+                      "KeyCombo2Delay", true, "", out key);
+                    int.TryParse(temp, out delayComboKey2);
                 }
                 catch
                 {
@@ -918,7 +1066,18 @@ namespace MapleRobots
             checkBox_UnlimitedAttack.IsEnabled = true;
             checkBox_Potions.IsEnabled = true;
             checkBox_NoBreath.IsEnabled = true;
-            checkBox_PickUp.IsEnabled = true;
+            checkBox_PressKeySkill1.IsEnabled = true;
+            textBox_KeySkill1.IsEnabled = true;
+            textBox_SkillDelay1.IsEnabled = true;
+            textBox_SkillTime1.IsEnabled = true;
+            checkBox_PressKeySkill2.IsEnabled = true;
+            textBox_KeySkill2.IsEnabled = true;
+            textBox_SkillDelay2.IsEnabled = true;
+            textBox_SkillTime2.IsEnabled = true;
+            checkBox_Bossing.IsEnabled = true;
+            radioButton_BossingFaceBoth.IsEnabled = true;
+            radioButton_BossingFaceLeft.IsEnabled = true;
+            radioButton_BossingFaceRight.IsEnabled = true;
 
             int point = getPointFromDB(InGameName, 0);
             labelPoint.Content = "點數: " + point;
@@ -928,6 +1087,10 @@ namespace MapleRobots
                 textBox_HotKeyBotting.IsEnabled = true;
                 button_keySetting.IsEnabled = true;
                 comboBox_BottingCase.IsEnabled = true;
+                checkBox_PlayerAlarm.IsEnabled = true;
+                textBox_PlayerAlarm.IsEnabled = true;
+                button_Selling.IsEnabled = true;
+                checkBox_PickUp.IsEnabled = true;
             }
             isBind = true;
         }

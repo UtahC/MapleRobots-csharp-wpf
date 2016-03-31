@@ -122,11 +122,23 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="MapleRobotsDataSet.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>MapleRobotsDataSet.xsd</DependentUpon>
-    </Compile>
+    <Compile Include="AutoKey.cs" />
+    <Compile Include="Bossing.cs" />
+    <Compile Include="BottingBubbling.cs" />
+    <Compile Include="BottingGhostShip2.cs" />
+    <Compile Include="BottingGoby.cs" />
+    <Compile Include="BottingGhostShip1.cs" />
+    <Compile Include="BottingJrWraith.cs" />
+    <Compile Include="BottingMasterChronos.cs" />
+    <Compile Include="BottingPlattonChronos.cs" />
+    <Compile Include="BottingTeddy.cs" />
+    <Compile Include="BottingULU1.cs" />
+    <Compile Include="BottingULU2.cs" />
+    <Compile Include="BottingWildBoar.cs" />
+    <Compile Include="BottingWolfSpider.cs" />
+    <Compile Include="BottingWraith.cs" />
+    <Compile Include="BottingGhostShip5.cs" />
+    <Compile Include="Store.cs" />
     <Compile Include="WindowHotKey.xaml.cs">
       <DependentUpon>WindowHotKey.xaml</DependentUpon>
     </Compile>
@@ -141,7 +153,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Botting.cs" />
+    <Compile Include="BottingBase.cs" />
     <Compile Include="Hack.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
@@ -174,18 +186,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <None Include="MapleRobotsDataSet.xsc">
-      <DependentUpon>MapleRobotsDataSet.xsd</DependentUpon>
-    </None>
-    <None Include="MapleRobotsDataSet.xsd">
-      <Generator>MSDataSetGenerator</Generator>
-      <LastGenOutput>MapleRobotsDataSet.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="MapleRobotsDataSet.xss">
-      <DependentUpon>MapleRobotsDataSet.xsd</DependentUpon>
-    </None>
-    <None Include="MapleRobots_TemporaryKey.pfx" />
     <None Include="Properties\app.manifest" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

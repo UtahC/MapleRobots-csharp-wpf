@@ -8,6 +8,8 @@ using System.Threading;
 //using System.Windows;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
+using System.Text.RegularExpressions;
 
 namespace MapleRobots
 {
@@ -86,7 +88,10 @@ namespace MapleRobots
         public static extern int BitBlt(IntPtr hDC, int x, int y, int nWidth, int nHeight, IntPtr hSrcDC, int xSrc, int ySrc, int dwRop);
         [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
         public static extern void mouse_event(uint dwFlags, uint dx, uint dy, uint cButtons, UIntPtr dwExtraInfo);
-
+        [DllImport("kernel32", CharSet = CharSet.Unicode)]
+        private static extern int GetPrivateProfileString(string section,
+        string key, string def, StringBuilder retVal,
+        int size, string filePath);
         public static int GetPid(string windowTitle)
         {
             int rs = 0;
@@ -263,7 +268,7 @@ namespace MapleRobots
         {
             GetWindowRectangle(hwnd, out left, out top, out right, out bottom);
             left = (right - clientWidth) / 2;
-            top = top - clientHeight - left;
+            top = bottom - clientHeight - left;
             right = left + clientWidth;
             bottom = top + clientHeight;
         }
@@ -397,13 +402,14 @@ namespace MapleRobots
         }
         public static void LeftClick()
         {
-            mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, 0, 0, 0, (UIntPtr)0);
+            mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, (UIntPtr)0);
+            mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, (UIntPtr)0);
         }
         public static void LeftDoubleClick()
         {
-            mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, 0, 0, 0, (UIntPtr)0);
-            Thread.Sleep(150);
-            mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, 0, 0, 0, (UIntPtr)0);
+            mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, (UIntPtr)0);
+            Thread.Sleep(50);
+            mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, (UIntPtr)0);
         }
         public static void Rightclick()
         {
@@ -427,6 +433,30 @@ namespace MapleRobots
         {
             MessageBox.Show(text, "系統提示", MessageBoxButtons.OK, MessageBoxIcon.Warning,
                  MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
+        }
+        public static string iniReader (string file, string sectionName, string keyName, bool isNumOnly, 
+          string defaultValue, out Keys key)
+        {
+            StringBuilder stringBuilder = new StringBuilder(30);
+            string valueFormat, result;
+            if (isNumOnly)
+                valueFormat = "^[0-9]*$";
+            else
+                valueFormat = "^[a-zA-Z0-9]*$";
+            GetPrivateProfileString(sectionName, keyName, "", stringBuilder, 30, file);
+            if (Regex.IsMatch(stringBuilder.ToString(), valueFormat) && stringBuilder.ToString() != "")
+            {
+                result = stringBuilder.ToString();
+                bool ret = Enum.TryParse(result, out key);
+                if (!ret)
+                    key = Keys.None;
+                return result;
+            }
+            else
+            {
+                key = Keys.None;
+                return defaultValue;
+            }
         }
         /*
         static public bool FindPic(IntPtr hwnd, string path, int X1, int Y1, int X2, int Y2,

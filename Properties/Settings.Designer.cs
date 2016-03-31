@@ -22,16 +22,5 @@ namespace MapleRobots.Properties {
                 return defaultInstance;
             }
         }
-        
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
-        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=MapleRobots.no-ip.org;Initial Catalog=MapleRobots;Persist Security In" +
-            "fo=True;User ID=sa;Password=bstking9g6k")]
-        public string MapleRobotsConnectionString {
-            get {
-                return ((string)(this["MapleRobotsConnectionString"]));
-            }
-        }
     }
 }

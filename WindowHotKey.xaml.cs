@@ -25,10 +25,6 @@ namespace MapleRobots
         [DllImport("kernel32", CharSet = CharSet.Unicode)]
         private static extern long WritePrivateProfileString(string section,
         string key, string val, string filePath);
-        [DllImport("kernel32", CharSet = CharSet.Unicode)]
-        private static extern int GetPrivateProfileString(string section,
-        string key, string def, StringBuilder retVal,
-        int size, string filePath);
 
         private string filename = "data.ini";
 
@@ -58,116 +54,24 @@ namespace MapleRobots
             {
                 try
                 {
-                    StringBuilder stringBuilder = new StringBuilder(30);
-                    GetPrivateProfileString(MainWindow.InGameName, "KeyTeleport", "", stringBuilder, 30, ".\\" + filename);
-                    if (Regex.IsMatch(stringBuilder.ToString(), "^[a-zA-Z0-9]*$") && stringBuilder.ToString() != "")
-                    {
-                        Keys key;
-                        textBox_Teleport.Text = stringBuilder.ToString();
-                        Enum.TryParse(textBox_Teleport.Text, out key);
-                        MainWindow.keyTeleport = key;
-                    }
-                    else
-                        textBox_Teleport.Text = "";
-                    stringBuilder.Clear();
-                    GetPrivateProfileString(MainWindow.InGameName, "KeyPickUp", "", stringBuilder, 30, ".\\" + filename);
-                    if (Regex.IsMatch(stringBuilder.ToString(), "^[a-zA-Z0-9]*$") && stringBuilder.ToString() != "")
-                    {
-                        Keys key;
-                        textBox_PickUp.Text = stringBuilder.ToString();
-                        Enum.TryParse(textBox_PickUp.Text, out key);
-                        MainWindow.keyPickUp = key;
-                    }
-                    else
-                        textBox_PickUp.Text = "";
-                    stringBuilder.Clear();
-                    GetPrivateProfileString(MainWindow.InGameName, "KeyAttack", "", stringBuilder, 30, ".\\" + filename);
-                    if (Regex.IsMatch(stringBuilder.ToString(), "^[a-zA-Z0-9]*$") && stringBuilder.ToString() != "")
-                    {
-                        Keys key;
-                        textBox_Attack.Text = stringBuilder.ToString();
-                        Enum.TryParse(textBox_Attack.Text, out key);
-                        MainWindow.keyAttack = key;
-                    }
-                    else
-                        textBox_Attack.Text = "ex.天怒";
-                    stringBuilder.Clear();
-                    GetPrivateProfileString(MainWindow.InGameName, "KeyJump", "", stringBuilder, 30, ".\\" + filename);
-                    if (Regex.IsMatch(stringBuilder.ToString(), "^[a-zA-Z0-9]*$") && stringBuilder.ToString() != "")
-                    {
-                        Keys key;
-                        textBox_Jump.Text = stringBuilder.ToString();
-                        Enum.TryParse(textBox_Jump.Text, out key);
-                        MainWindow.keyJump = key;
-                    }
-                    else
-                        textBox_Jump.Text = "ex.天怒";
-                    stringBuilder.Clear();
-                    GetPrivateProfileString(MainWindow.InGameName, "KeyDoor", "", stringBuilder, 30, ".\\" + filename);
-                    if (Regex.IsMatch(stringBuilder.ToString(), "^[a-zA-Z0-9]*$") && stringBuilder.ToString() != "")
-                    {
-                        Keys key;
-                        textBox_Door.Text = stringBuilder.ToString();
-                        Enum.TryParse(textBox_Door.Text, out key);
-                        MainWindow.keyDoor = key;
-                    }
-                    else
-                        textBox_Door.Text = "";
-                    stringBuilder.Clear();
-                    GetPrivateProfileString(MainWindow.InGameName, "KeySkill", "", stringBuilder, 30, ".\\" + filename);
-                    if (Regex.IsMatch(stringBuilder.ToString(), "^[a-zA-Z0-9]*$") && stringBuilder.ToString() != "")
-                    {
-                        Keys key;
-                        textBox_Skill.Text = stringBuilder.ToString();
-                        Enum.TryParse(textBox_Skill.Text, out key);
-                        MainWindow.keySkill = key;
-                    }
-                    else
-                        textBox_Skill.Text = "ex.祈禱";
-                    stringBuilder.Clear();
-                    GetPrivateProfileString(MainWindow.InGameName, "KeyCombo1", "", stringBuilder, 30, ".\\" + filename);
-                    if (Regex.IsMatch(stringBuilder.ToString(), "^[a-zA-Z0-9]*$") && stringBuilder.ToString() != "")
-                    {
-                        Keys key;
-                        textBox_Combo1.Text = stringBuilder.ToString();
-                        Enum.TryParse(textBox_Combo1.Text, out key);
-                        MainWindow.keyCombo1 = key;
-                    }
-                    else
-                        textBox_Combo1.Text = "";
-                    stringBuilder.Clear();
-                    GetPrivateProfileString(MainWindow.InGameName, "KeyCombo2", "", stringBuilder, 30, ".\\" + filename);
-                    if (Regex.IsMatch(stringBuilder.ToString(), "^[a-zA-Z0-9]*$") && stringBuilder.ToString() != "")
-                    {
-                        Keys key;
-                        textBox_Combo2.Text = stringBuilder.ToString();
-                        Enum.TryParse(textBox_Combo2.Text, out key);
-                        MainWindow.keyCombo2 = key;
-                    }
-                    else
-                        textBox_Combo2.Text = "";
-                    stringBuilder.Clear();
-                    GetPrivateProfileString(MainWindow.InGameName, "KeyCombo1Delay", "", stringBuilder, 30, ".\\" + filename);
-                    if (Regex.IsMatch(stringBuilder.ToString(), "^[0-9]*$") && stringBuilder.ToString() != "")
-                    {
-                        int delay;
-                        textBox_Combo1Delay.Text = stringBuilder.ToString();
-                        delay = int.Parse(textBox_Combo1Delay.Text);
-                        MainWindow.delayComboKey1 = delay;
-                    }
-                    else
-                        textBox_Combo1Delay.Text = "";
-                    stringBuilder.Clear();
-                    GetPrivateProfileString(MainWindow.InGameName, "KeyCombo2Delay", "", stringBuilder, 30, ".\\" + filename);
-                    if (Regex.IsMatch(stringBuilder.ToString(), "^[0-9]*$") && stringBuilder.ToString() != "")
-                    {
-                        int delay;
-                        textBox_Combo2Delay.Text = stringBuilder.ToString();
-                        delay = int.Parse(textBox_Combo2Delay.Text);
-                        MainWindow.delayComboKey2 = delay;
-                    }
-                    else
-                        textBox_Combo2Delay.Text = "";
+                    Keys key;
+
+                    textBox_Teleport.Text = Hack.iniReader(".\\" + filename, MainWindow.InGameName, "KeyTeleport", false, "", out MainWindow.keyTeleport);
+                    textBox_PickUp.Text = Hack.iniReader(".\\" + filename, MainWindow.InGameName, "KeyPickUp", false, "", out MainWindow.keyPickUp);
+                    textBox_Attack.Text = Hack.iniReader(".\\" + filename, MainWindow.InGameName, "KeyAttack", false, "", out MainWindow.keyAttack);
+                    textBox_Jump.Text = Hack.iniReader(".\\" + filename, MainWindow.InGameName, "KeyJump", false, "", out MainWindow.keyJump);
+                    textBox_Door.Text = Hack.iniReader(".\\" + filename, MainWindow.InGameName, "KeyDoor", false, "", out MainWindow.keyDoor);
+                    textBox_Skill.Text = Hack.iniReader(".\\" + filename, MainWindow.InGameName, "KeySkill", false, "", out MainWindow.keySkill);
+                    textBox_Combo1.Text = Hack.iniReader(".\\" + filename, MainWindow.InGameName, "KeyCombo1", false, "", out MainWindow.keyCombo1);
+                    textBox_Combo2.Text = Hack.iniReader(".\\" + filename, MainWindow.InGameName, "KeyCombo2", false, "", out MainWindow.keyCombo2);
+
+                    textBox_Combo1Delay.Text = Hack.iniReader(".\\" + filename, MainWindow.InGameName,
+                      "KeyCombo1Delay", true, "", out key);
+                    int.TryParse(textBox_Combo1Delay.Text, out MainWindow.delayComboKey1);
+
+                    textBox_Combo2Delay.Text = Hack.iniReader(".\\" + filename, MainWindow.InGameName,
+                      "KeyCombo2Delay", true, "", out key);
+                    int.TryParse(textBox_Combo2Delay.Text, out MainWindow.delayComboKey2);
                 }
                 catch
                 {
@@ -232,25 +136,35 @@ namespace MapleRobots
 
         private void textBox_Combo1Delay_TextChanged(object sender, TextChangedEventArgs e)
         {
-            try
+            if (textBox_Combo1Delay.Text == "")
+                return;
+            else
             {
-                MainWindow.delayComboKey1 = int.Parse(textBox_Combo1Delay.Text);
-            }
-            catch
-            {
-                System.Windows.MessageBox.Show("請輸入數字");
+                try
+                {
+                    MainWindow.delayComboKey1 = int.Parse(textBox_Combo1Delay.Text);
+                }
+                catch
+                {
+                    System.Windows.MessageBox.Show("請輸入數字");
+                }
             }
         }
 
         private void textBox_Combo2Delay_TextChanged(object sender, TextChangedEventArgs e)
         {
-            try
+            if (textBox_Combo2Delay.Text == "")
+                return;
+            else
             {
-                MainWindow.delayComboKey2 = int.Parse(textBox_Combo1Delay.Text);
-            }
-            catch
-            {
-                System.Windows.MessageBox.Show("請輸入數字");
+                try
+                {
+                    MainWindow.delayComboKey2 = int.Parse(textBox_Combo1Delay.Text);
+                }
+                catch
+                {
+                    System.Windows.MessageBox.Show("請輸入數字");
+                }
             }
         }
 
