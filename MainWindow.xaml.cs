@@ -695,51 +695,147 @@ namespace MapleRobots
                     }
                     else if (comboBox_BottingCase.SelectedItem.ToString() == "魚窩")
                     {
-                        _threadOfBotting = new Thread(BottingGoby.bottingGoby);
+                        if (mapID != 230040100)
+                        {
+                            timer2.Stop();
+                            checkBox_Botting.IsChecked = false;
+                            Hack.ShowMessageBox("請先前往該地圖");
+                            return;
+                        }
+                        else
+                            _threadOfBotting = new Thread(BottingGoby.bottingGoby);
                     }
-                    else if (comboBox_BottingCase.SelectedItem.ToString() == "籃水靈")
+                    else if (comboBox_BottingCase.SelectedItem.ToString() == "籃水靈") 
                     {
-                        _threadOfBotting = new Thread(BottingBubbling.bottingBubbling);
+                        if (mapID != 103000101)
+                        {
+                            timer2.Stop();
+                            checkBox_Botting.IsChecked = false;
+                            Hack.ShowMessageBox("請先前往該地圖");
+                            return;
+                        }
+                        else
+                            _threadOfBotting = new Thread(BottingBubbling.bottingBubbling);
                     }
-                    else if (comboBox_BottingCase.SelectedItem.ToString() == "黑肥肥")
+                    else if (comboBox_BottingCase.SelectedItem.ToString() == "黑肥肥") 
                     {
-                        _threadOfBotting = new Thread(BottingWildBoar.bottingWildBoar);
+                        if (mapID != 101040001)
+                        {
+                            timer2.Stop();
+                            checkBox_Botting.IsChecked = false;
+                            Hack.ShowMessageBox("請先前往該地圖");
+                            return;
+                        }
+                        else
+                            _threadOfBotting = new Thread(BottingWildBoar.bottingWildBoar);
                     }
                     else if (comboBox_BottingCase.SelectedItem.ToString() == "發條熊")
                     {
-                        _threadOfBotting = new Thread(BottingTeddy.bottingTeddy);
+                        if (mapID != 220010500)
+                        {
+                            timer2.Stop();
+                            checkBox_Botting.IsChecked = false;
+                            Hack.ShowMessageBox("請先前往該地圖");
+                            return;
+                        }
+                        else
+                            _threadOfBotting = new Thread(BottingTeddy.bottingTeddy);
                     }
-                    else if (comboBox_BottingCase.SelectedItem.ToString() == "小幽靈")
+                    else if (comboBox_BottingCase.SelectedItem.ToString() == "小幽靈") 
                     {
-                        _threadOfBotting = new Thread(BottingJrWraith.bottingJrWraith);
+                        if (mapID != 103000103)
+                        {
+                            timer2.Stop();
+                            checkBox_Botting.IsChecked = false;
+                            Hack.ShowMessageBox("請先前往該地圖");
+                            return;
+                        }
+                        else
+                            _threadOfBotting = new Thread(BottingJrWraith.bottingJrWraith);
                     }
                     else if (comboBox_BottingCase.SelectedItem.ToString() == "進化妖魔")
                     {
-                        _threadOfBotting = new Thread(BottingPlattonChronos.bottingPlatoonChronos);
+                        if (mapID != 220040000)
+                        {
+                            timer2.Stop();
+                            checkBox_Botting.IsChecked = false;
+                            Hack.ShowMessageBox("請先前往該地圖");
+                            return;
+                        }
+                        else
+                            _threadOfBotting = new Thread(BottingPlattonChronos.bottingPlatoonChronos);
                     }
                     else if (comboBox_BottingCase.SelectedItem.ToString() == "妖魔隊長")
                     {
-                        _threadOfBotting = new Thread(BottingMasterChronos.bottingPlatoonChronos);
+                        if (mapID != 220040400)
+                        {
+                            timer2.Stop();
+                            checkBox_Botting.IsChecked = false;
+                            Hack.ShowMessageBox("請先前往該地圖");
+                            return;
+                        }
+                        else
+                            _threadOfBotting = new Thread(BottingMasterChronos.bottingPlatoonChronos);
                     }
-                    else if (comboBox_BottingCase.SelectedItem.ToString() == "大幽靈")
+                    else if (comboBox_BottingCase.SelectedItem.ToString() == "大幽靈") 
                     {
-                        _threadOfBotting = new Thread(BottingWraith.bottingWraith);
+                        if (mapID != 103000105)
+                        {
+                            timer2.Stop();
+                            checkBox_Botting.IsChecked = false;
+                            Hack.ShowMessageBox("請先前往該地圖");
+                            return;
+                        }
+                        else
+                            _threadOfBotting = new Thread(BottingWraith.bottingWraith);
                     }
                     else if (comboBox_BottingCase.SelectedItem.ToString() == "GS1")
                     {
-                        _threadOfBotting = new Thread(BottingGhostShip1.bottingGS1);
+                        if (mapID != 541010000)
+                        {
+                            timer2.Stop();
+                            checkBox_Botting.IsChecked = false;
+                            Hack.ShowMessageBox("請先前往該地圖");
+                            return;
+                        }
+                        else
+                            _threadOfBotting = new Thread(BottingGhostShip1.bottingGS1);
                     }
                     else if (comboBox_BottingCase.SelectedItem.ToString() == "GS5")
                     {
-                        _threadOfBotting = new Thread(BottingGhostShip5.bottingGS5);
+                        if (mapID != 541010040)
+                        {
+                            timer2.Stop();
+                            checkBox_Botting.IsChecked = false;
+                            Hack.ShowMessageBox("請先前往該地圖");
+                            return;
+                        }
+                        else
+                            _threadOfBotting = new Thread(BottingGhostShip5.bottingGS5);
                     }
-                    else if (comboBox_BottingCase.SelectedItem.ToString() == "GS2")
+                    else if (comboBox_BottingCase.SelectedItem.ToString() == "GS2") 
                     {
-                        _threadOfBotting = new Thread(BottingGhostShip2.bottingGS2);
+                        if (mapID != 541010010)
+                        {
+                            timer2.Stop();
+                            checkBox_Botting.IsChecked = false;
+                            Hack.ShowMessageBox("請先前往該地圖");
+                            return;
+                        }
+                        else
+                            _threadOfBotting = new Thread(BottingGhostShip2.bottingGS2);
                     }
-                    else if (comboBox_BottingCase.SelectedItem.ToString() == "WS")
+                    else if (comboBox_BottingCase.SelectedItem.ToString() == "WS") 
                     {
-                        _threadOfBotting = new Thread(BottingWolfSpider.botting);
+                        if (mapID != 600020300)
+                        {
+                            timer2.Stop();
+                            checkBox_Botting.IsChecked = false;
+                            Hack.ShowMessageBox("請先前往該地圖");
+                            return;
+                        }
+                        else
+                            _threadOfBotting = new Thread(BottingWolfSpider.botting);
                     }
                     else if (comboBox_BottingCase.SelectedItem.ToString() == "ULU1")
                     {
