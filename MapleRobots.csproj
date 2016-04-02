@@ -145,9 +145,6 @@
     <Compile Include="BottingWraith.cs" />
     <Compile Include="BottingGhostShip5.cs" />
     <Compile Include="Store.cs" />
-    <Compile Include="WindowCheckVersion.xaml.cs">
-      <DependentUpon>WindowCheckVersion.xaml</DependentUpon>
-    </Compile>
     <Compile Include="WindowHotKey.xaml.cs">
       <DependentUpon>WindowHotKey.xaml</DependentUpon>
     </Compile>
@@ -168,10 +165,6 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="WindowCheckVersion.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="WindowHotKey.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

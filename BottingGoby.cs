@@ -13,7 +13,7 @@ namespace MapleRobots
         internal static void bottingGoby()
         {
             object outX = -1, outY = -1;
-            int lastItemX, lastItemY, tempX, tempY;
+            int lastItemX, lastItemY;
             //Hack.GetClientRectangle(MainWindow.process.MainWindowHandle, 800, 600, out windowX, out windowY, out tempX, out tempY);
             //Debug.WriteLine(windowX + "," + windowY);
             //Hack.ShowMessageBox(windowX + "," + windowY);
