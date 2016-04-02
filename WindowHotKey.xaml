@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MapleRobots"
         mc:Ignorable="d"
-        Title="熱鍵設定" Height="435.802" Width="279.013" Closed="Window_Closed" Loaded="Window_Loaded" WindowStyle="ToolWindow" Icon="1458251390_science-technology-10.ico">
+        Title="熱鍵設定" Height="435.802" Width="279.013" Closed="Window_Closed" Loaded="Window_Loaded" WindowStyle="ToolWindow" Icon="1458251390_science-technology-10.ico" ResizeMode="NoResize">
     <Grid>
         <Label x:Name="label" Content="順移*" HorizontalAlignment="Left" Margin="22,38,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="textBox_Teleport" HorizontalAlignment="Left" Height="23" Margin="56,40,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="55" IsReadOnly="True" KeyUp="textBox_Teleport_KeyUp"/>

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MapleRobots"
         mc:Ignorable="d"
-        Title="data" Height="393.639" Width="238.375" Closed="Window_Closed" Loaded="Window_Loaded">
+        Title="data" Height="393.639" Width="238.375" Closed="Window_Closed" Loaded="Window_Loaded" ResizeMode="NoResize">
     <Grid>
         <Label x:Name="label_AttackCount" HorizontalAlignment="Left" Margin="12,42,0,0" VerticalAlignment="Top" Content="labelAttackCount"/>
         <Label x:Name="label_HpAlert" Content="labelHpAlert" Margin="12,68,0,0" Height="26" HorizontalAlignment="Left" VerticalAlignment="Top"/>

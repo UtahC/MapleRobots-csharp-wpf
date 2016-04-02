@@ -882,7 +882,7 @@ namespace MapleRobots
 
         private int getPointFromDB (string IGN, int deltaPoint)
         {
-            using (var conn = new SqlConnection("Server=tcp:MapleRobots.no-ip.org,1433;Database=MapleRobots;User ID=sa;Password=bstking9g6k;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;"))
+            using (var conn = new SqlConnection("Server=tcp:MapleRobots.no-ip.org,1433;Database=MapleRobots;User ID=sa;Password=753951;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;"))
             {
                 int userPoint, updatedUserPoint;
                 var cmd = conn.CreateCommand();
@@ -948,7 +948,7 @@ namespace MapleRobots
 
         private bool checkBanned()
         {
-            using (var conn = new SqlConnection("Server=tcp:MapleRobots.no-ip.org,1433;Database=MapleRobots;User ID=sa;Password=bstking9g6k;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;"))
+            using (var conn = new SqlConnection("Server=tcp:MapleRobots.no-ip.org,1433;Database=MapleRobots;User ID=sa;Password=753951;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;"))
             {
                 var cmd = conn.CreateCommand();
                 NetworkInterface[] nics = NetworkInterface.GetAllNetworkInterfaces();

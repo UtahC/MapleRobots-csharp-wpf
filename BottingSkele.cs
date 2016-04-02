@@ -274,7 +274,7 @@ namespace MapleRobots
                 Hack.KeyUp(WindowHwnd, Keys.Left);
                 return;
             }
-            else if (CharacterX >= coorX - 5 && CharacterX <= coorX + 5 && CharacterY <= floorY)
+            else if (CharacterX >= coorX - 20 && CharacterX <= coorX + 20 && CharacterY <= floorY)
                 Hack.KeyDown(WindowHwnd, Keys.Up);
         
         }
