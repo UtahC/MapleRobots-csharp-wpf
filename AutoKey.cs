@@ -32,7 +32,7 @@ namespace MapleRobots
         internal static void Skill1()
         {
             while (true)
-            {
+            { 
                 mre_KeyPresser.Reset();
                 mre_PickUp.Reset();
                 Hack.KeyPress(MainWindow.WindowHwnd, MainWindow.keySkill1);

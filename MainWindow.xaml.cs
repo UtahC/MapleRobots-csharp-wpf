@@ -16,6 +16,7 @@ using System.Net.NetworkInformation;
 using System.Data.SqlClient;
 using System.Collections.Generic;
 using System.Media;
+using System.Reflection;
 
 namespace MapleRobots
 {
@@ -32,7 +33,6 @@ namespace MapleRobots
         private static extern long WritePrivateProfileString(string section,
         string key, string val, string filePath);
 
-        const int nowVersion_Program = 1;
         bool isOldVersion = false;
 
         private const int HOTKEY_ID = 9000;
@@ -98,8 +98,8 @@ namespace MapleRobots
 
         public MainWindow()
         {
-            
-            int nowVersion_Server = 0;
+            Version programVersion, serverVersion;
+            string strVersion = "";
             using (var conn = new SqlConnection("Server=tcp:MapleRobots.no-ip.org,1433;Database=MapleRobots;User ID=sa;Password=753951;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;"))
             {
                 var cmd = conn.CreateCommand();
@@ -118,7 +118,7 @@ namespace MapleRobots
                     SELECT NowVersion
                     FROM dbo.RobotsVersion";
 
-                    nowVersion_Server = (int)cmd.ExecuteScalar();
+                    strVersion = (string)cmd.ExecuteScalar();
 
                 }
                 catch
@@ -126,8 +126,9 @@ namespace MapleRobots
 
                 }
             }
-
-            if (nowVersion_Server == nowVersion_Program)
+            programVersion = Assembly.GetEntryAssembly().GetName().Version;
+            serverVersion = new Version(strVersion);
+            if (programVersion.CompareTo(serverVersion) >= 0)
             {
                 File.Delete("_MapleRobots.exe");
             }
@@ -457,8 +458,12 @@ namespace MapleRobots
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+
             if (isOldVersion)
+            {
+                Process.Start("MapleRobots.exe");
                 Close();
+            }
         }
 
         private void comboBox_BottingCase_Loaded(object sender, RoutedEventArgs e)
@@ -1098,25 +1103,25 @@ namespace MapleRobots
             if (WindowHwnd == IntPtr.Zero || WindowTitle == null)
             {
                 Hack.ShowMessageBox("視窗綁定失敗");
-                return;
+                Close();
             }
             else if (!WindowTitle.Contains("MapleRoyals"))
             {
                 Hack.ShowMessageBox("此程式僅適用於MapleRoyals");
-                return;
+                Close();
             }
 
             InGameName = Hack.ReadString(process, CharacterNameBaseAdr, CharacterNameOffset, 15);
             if (InGameName == null || InGameName == "")
             {
                 Hack.ShowMessageBox("請先進入遊戲");
-                return;
+                Close();
             }
 
             if (checkBanned())//檢查是否被BAN
             {
                 System.Windows.MessageBox.Show("伺服器拒絕存取");
-                this.Close();
+                Close();
                 return;
             }
 
@@ -1340,7 +1345,8 @@ namespace MapleRobots
                     throw we;
             }
             ftpResp.Close();
-            Hack.ShowMessageBox("已更新完畢，請重啟程式");
+            Hack.ShowMessageBox("已更新完畢，即將重啟程式");
+            
         }
     }
 }
