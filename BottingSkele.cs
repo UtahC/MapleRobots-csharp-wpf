@@ -37,7 +37,83 @@ namespace MapleRobots
         }
         static void training1hit()
         {
-            
+            int counter = 0;
+            Thread.Sleep(500);
+            //training start
+            while (true)
+            {
+                if (counter % 8 == 0)
+                {
+                    //go to position start
+                    while (getCharacterStatus() < 14 || getCharacterStatus() > 17 || CharacterX != -58 || getCharacterY() > 979)
+                    {
+                        if (getCharacterStatus() >= 14 && getCharacterStatus() <= 17 && CharacterX != -58)
+                            RopeExiting(true);
+                        GoToFloor(3);
+                        if (CharacterX < 0)
+                            SpecialRopeClimbing(-58, false, 979, 1180, 60, -60);
+                        else if (CharacterX > 0)
+                            SpecialRopeClimbing(-58, false, 979, 1180, -75, 75);
+                    }
+                    Hack.KeyUp(WindowHwnd, Keys.Up);
+                    //go to position end
+                    AutoKey.mre_PickUp.Reset();
+                    for (int i = 0; i < 25; i++)
+                        Hack.KeyPress(WindowHwnd, MainWindow.keyCombo1);
+                    Thread.Sleep(MainWindow.delayComboKey1);
+                    for (int i = 0; i < 25; i++)
+                        Hack.KeyPress(WindowHwnd, MainWindow.keyCombo2);
+                    Thread.Sleep(MainWindow.delayComboKey2);
+                    AutoKey.mre_PickUp.Set();
+                    GoToFloor(2);
+                }
+                else if (counter % 4 == 0)
+                {
+                    //go to position start
+                    while (getCharacterStatus() < 14 || getCharacterStatus() > 17 || CharacterX != -58 || getCharacterY() > 979)
+                    {
+                        if (getCharacterStatus() >= 14 && getCharacterStatus() <= 17 && CharacterX != -58)
+                            RopeExiting(true);
+                        GoToFloor(3);
+                        if (CharacterX < 0)
+                            SpecialRopeClimbing(-58, false, 979, 1180, 60, -60);
+                        else if (CharacterX > 0)
+                            SpecialRopeClimbing(-58, false, 979, 1180, -75, 75);
+                    }
+                    Hack.KeyUp(WindowHwnd, Keys.Up);
+                    //go to position end
+                    AutoKey.mre_PickUp.Reset();
+                    for (int i = 0; i < 50; i++)
+                        Hack.KeyPress(WindowHwnd, MainWindow.keySkill);
+                    AutoKey.mre_PickUp.Set();
+                    GoToFloor(2);
+                }
+                else
+                {
+                    while (nowFloor != 2)
+                        GoToFloor(2);
+                }
+                GoToX(180);
+                Attack(1);
+                GoToX(650);
+                GoToX(878, 20, false, false, 0);
+                Attack(1);
+                if (CharacterX >= 773)
+                    GoToX(878);
+                GoToX(380);
+                while (getCharacterY() > 1140 && nowFloor == 3)
+                    JumpingOver(350, true);
+                GoToX(25);
+                Attack(1);
+                /* if (counter % 6 == 0 && counter > 0)
+                 {
+                     GoToFloor(1);
+                     GoToX(-183);
+                 }*/
+
+
+                counter++;
+            }
         }
         static void training2hit()
         {

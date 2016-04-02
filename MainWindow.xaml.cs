@@ -229,7 +229,7 @@ namespace MapleRobots
 
         private void textBox_SkillDelay1_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            if (textBox_SkillDelay1.Text == "延遲")
+            if (textBox_SkillDelay1.Text == "延遲" || textBox_SkillDelay1.Text == "")
                 return;
             else
             {
@@ -246,7 +246,7 @@ namespace MapleRobots
 
         private void textBox_SkillDelay2_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            if (textBox_SkillDelay2.Text == "延遲")
+            if (textBox_SkillDelay2.Text == "延遲" || textBox_SkillDelay2.Text == "")
                 return;
             else
             {
@@ -263,7 +263,7 @@ namespace MapleRobots
 
         private void textBox_SkillTime1_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            if (textBox_SkillTime1.Text == "秒/次")
+            if (textBox_SkillTime1.Text == "秒/次" || textBox_SkillTime1.Text == "")
                 return;
             else
             {
@@ -280,7 +280,7 @@ namespace MapleRobots
 
         private void textBox_SkillTime2_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            if (textBox_SkillTime2.Text == "秒/次")
+            if (textBox_SkillTime2.Text == "秒/次" || textBox_SkillTime2.Text == "")
                 return;
             else
             {
@@ -335,6 +335,54 @@ namespace MapleRobots
         {
             _threadOfSelling = new Thread(Store.selling);
             _threadOfSelling.Start();
+        }
+
+        private void textBox_SkillDelay2_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (textBox_SkillDelay2.Text == "")
+                textBox_SkillDelay2.Text = "延遲";
+        }
+
+        private void textBox_SkillDelay2_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (textBox_SkillDelay2.Text == "延遲")
+                textBox_SkillDelay2.Text = "";
+        }
+
+        private void textBox_SkillDelay1_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (textBox_SkillDelay1.Text == "")
+                textBox_SkillDelay1.Text = "延遲";
+        }
+
+        private void textBox_SkillDelay1_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (textBox_SkillDelay1.Text == "延遲")
+                textBox_SkillDelay1.Text = "";
+        }
+
+        private void textBox_SkillTime1_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (textBox_SkillTime1.Text == "")
+                textBox_SkillTime1.Text = "秒/次";
+        }
+
+        private void textBox_SkillTime1_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (textBox_SkillTime1.Text == "秒/次")
+                textBox_SkillTime1.Text = "";
+        }
+
+        private void textBox_SkillTime2_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (textBox_SkillTime2.Text == "")
+                textBox_SkillTime2.Text = "秒/次";
+        }
+
+        private void textBox_SkillTime2_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (textBox_SkillTime2.Text == "秒/次")
+                textBox_SkillTime2.Text = "";
         }
 
         private void checkBox_Bossing_Checked(object sender, RoutedEventArgs e)
