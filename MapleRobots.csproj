@@ -130,7 +130,10 @@
     <Compile Include="BottingGhostShip1.cs" />
     <Compile Include="BottingJrWraith.cs" />
     <Compile Include="BottingMasterChronos.cs" />
+    <Compile Include="BottingPetri.cs" />
     <Compile Include="BottingPlattonChronos.cs" />
+    <Compile Include="BottingSkele.cs" />
+    <Compile Include="BottingSquid.cs" />
     <Compile Include="BottingTeddy.cs" />
     <Compile Include="BottingULU1.cs" />
     <Compile Include="BottingULU2.cs" />

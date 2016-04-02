@@ -28,6 +28,7 @@ namespace MapleRobots
         internal static void bottingGhostShip5Training()
         {
             int counter = 0;
+            Thread.Sleep(500);
             //training start
             while (true)
             {

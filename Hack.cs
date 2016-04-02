@@ -290,7 +290,7 @@ namespace MapleRobots
         {
             PostMessage(hwnd, WM_KEYDOWN, (IntPtr)key, MakeKeyLparam((int)key, WM_KEYDOWN));
             Thread.Sleep(1);
-            PostMessage(hwnd, WM_KEYUP, (IntPtr)key, MakeKeyLparam((int)key, WM_KEYDOWN)); 
+            PostMessage(hwnd, WM_KEYUP, (IntPtr)key, MakeKeyLparam((int)key, WM_KEYUP)); 
         }
         public static void KeyPress(IntPtr hwnd, string keyString)
         {
@@ -306,7 +306,8 @@ namespace MapleRobots
         {
             if (key.ToString() == "Up" || key.ToString() == "Down" || key.ToString() == "Left" || key.ToString() == "Right")
                 keybd_event((byte)key, 0, 0, 0);
-            PostMessage(hwnd, WM_KEYDOWN, (IntPtr)key, MakeKeyLparam((int)key, WM_KEYDOWN));
+            else
+                PostMessage(hwnd, WM_KEYDOWN, (IntPtr)key, MakeKeyLparam((int)key, WM_KEYDOWN));
         }
         public static void KeyDown(IntPtr hwnd, string keyString)
         {

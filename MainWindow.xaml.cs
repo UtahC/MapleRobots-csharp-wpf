@@ -74,7 +74,7 @@ namespace MapleRobots
         internal static IntPtr WindowHwnd { get; set; }
         internal static bool isBind { get; set; }
 
-        internal static int delayComboKey1, delayComboKey2, delaySkill1, delaySkill2, timeSkill1, timeSkill2;
+        internal static int delayComboKey1, delayComboKey2, delaySkill1, delaySkill2, timeSkill1, timeSkill2, attackParam;
         internal static Keys keyTeleport, keyAttack, keyDoor, keyPickUp, keySkill, keyCombo1, keyCombo2, keyJump;
         internal static Keys keyWantToPress, keySkill1, keySkill2;
         internal static string InGameName;
@@ -393,9 +393,9 @@ namespace MapleRobots
         private void comboBox_BottingCase_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             if (comboBox_BottingCase.SelectedItem.ToString() == "ULU2" ||
-                comboBox_BottingCase.SelectedItem.ToString() == "石頭人" ||
-                comboBox_BottingCase.SelectedItem.ToString() == "骨龍" ||
-                comboBox_BottingCase.SelectedItem.ToString() == "烏賊")
+              comboBox_BottingCase.SelectedItem.ToString() == "石頭人" ||
+              comboBox_BottingCase.SelectedItem.ToString() == "骨龍" ||
+              comboBox_BottingCase.SelectedItem.ToString() == "烏賊")
                 comboBox_BottingHits.Visibility = Visibility.Visible;
             else
                 comboBox_BottingHits.Visibility = Visibility.Hidden;
@@ -565,10 +565,10 @@ namespace MapleRobots
         private void checkBox_Botting_Checked(object sender, RoutedEventArgs e)
         {
             if (keyTeleport == Keys.None || keyPickUp == Keys.None || keyAttack == Keys.None
-                || keyJump == Keys.None || windowhotkey != null)
+                || keyJump == Keys.None || windowhotkey != null || attackParam <= 0)
             {
                 checkBox_Botting.IsChecked = false;
-                Hack.ShowMessageBox("請先完成設定熱鍵");
+                Hack.ShowMessageBox("請先完成掛機設定");
                 return;
             }
             else
@@ -580,7 +580,10 @@ namespace MapleRobots
                 UnregisterHotKey(_windowHandle, HOTKEY_ID + 1);
                 if (_threadOfBotting == null && getPointFromDB(InGameName, 0) > 0)
                 {
+                    int mapID = Hack.ReadInt(process, MapIDBaseAdr, MapIDOffset);
                     timer2.Start();
+                    if (comboBox_BottingHits.SelectedItem.ToString() == "2hit")
+                        BottingBase.hit = 2;
                     if (comboBox_BottingCase.SelectedIndex == -1)
                     {
                         timer2.Stop();
@@ -638,13 +641,63 @@ namespace MapleRobots
                     }
                     else if (comboBox_BottingCase.SelectedItem.ToString() == "ULU1")
                     {
-                        _threadOfBotting = new Thread(BottingULU1.botting);
+                        if (mapID != 541020100)
+                        {
+                            timer2.Stop();
+                            checkBox_Botting.IsChecked = false;
+                            Hack.ShowMessageBox("請先前往該地圖");
+                            return;
+                        }
+                        else
+                            _threadOfBotting = new Thread(BottingULU1.botting);
                     }
                     else if (comboBox_BottingCase.SelectedItem.ToString() == "ULU2")
                     {
-                        if (comboBox_BottingHits.SelectedItem.ToString() == "2hit")
-                            BottingULU2.hit = 2;
-                        _threadOfBotting = new Thread(BottingULU2.botting);
+                        if (mapID != 541020200)
+                        {
+                            timer2.Stop();
+                            checkBox_Botting.IsChecked = false;
+                            Hack.ShowMessageBox("請先前往該地圖");
+                            return;
+                        }
+                        else
+                            _threadOfBotting = new Thread(BottingULU2.botting);
+                    }
+                    else if (comboBox_BottingCase.SelectedItem.ToString() == "烏賊")
+                    {
+                        if (mapID != 230040300)
+                        {
+                            timer2.Stop();
+                            checkBox_Botting.IsChecked = false;
+                            Hack.ShowMessageBox("請先前往該地圖");
+                            return;
+                        }
+                        else
+                            _threadOfBotting = new Thread(BottingSquid.botting);
+                    }
+                    else if (comboBox_BottingCase.SelectedItem.ToString() == "石頭人")
+                    {
+                        if (mapID != 541020500)
+                        {
+                            timer2.Stop();
+                            checkBox_Botting.IsChecked = false;
+                            Hack.ShowMessageBox("請先前往該地圖");
+                            return;
+                        }
+                        else
+                            _threadOfBotting = new Thread(BottingPetri.botting);
+                    }
+                    else if (comboBox_BottingCase.SelectedItem.ToString() == "骨龍")
+                    {
+                        if (mapID != 240040511)
+                        {
+                            timer2.Stop();
+                            checkBox_Botting.IsChecked = false;
+                            Hack.ShowMessageBox("請先前往該地圖");
+                            return;
+                        }
+                        else
+                            _threadOfBotting = new Thread(BottingSkele.botting);
                     }
                     Hack.SetForegroundWindow(WindowHwnd);
                     _threadOfBotting.Start();
@@ -1038,12 +1091,16 @@ namespace MapleRobots
                     Hack.iniReader(".\\" + filename, InGameName, "KeyCombo2", false, "", out keyCombo2);
 
                     temp = Hack.iniReader(".\\" + filename, InGameName,
-                      "KeyCombo1Delay", true, "", out key);
+                      "KeyCombo1Delay", true, "3000", out key);
                     int.TryParse(temp, out delayComboKey1);
 
                     temp = Hack.iniReader(".\\" + filename, InGameName,
-                      "KeyCombo2Delay", true, "", out key);
+                      "KeyCombo2Delay", true, "3000", out key);
                     int.TryParse(temp, out delayComboKey2);
+
+                    temp = Hack.iniReader(".\\" + filename, InGameName,
+                      "AttackParam", true, "25", out key);
+                    int.TryParse(temp, out attackParam);
                 }
                 catch
                 {

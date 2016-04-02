@@ -35,11 +35,12 @@ namespace MapleRobots
 
         private void Window_Closed(object sender, EventArgs e)
         {
+            WritePrivateProfileString(MainWindow.InGameName, "KeyAttack", textBox_Attack.Text, ".\\" + filename);
+            WritePrivateProfileString(MainWindow.InGameName, "AttackParam", textBox_AttackParam.Text, ".\\" + filename);
             WritePrivateProfileString(MainWindow.InGameName, "KeyTeleport", textBox_Teleport.Text, ".\\" + filename);
             WritePrivateProfileString(MainWindow.InGameName, "KeyPickUp", textBox_PickUp.Text, ".\\" + filename);
-            WritePrivateProfileString(MainWindow.InGameName, "KeyAttack", textBox_Attack.Text, ".\\" + filename);
             WritePrivateProfileString(MainWindow.InGameName, "KeyJump", textBox_Jump.Text, ".\\" + filename);
-            WritePrivateProfileString(MainWindow.InGameName, "KeyDoor", textBox_Door.Text, ".\\" + filename);
+            //WritePrivateProfileString(MainWindow.InGameName, "KeyDoor", textBox_Door.Text, ".\\" + filename);
             WritePrivateProfileString(MainWindow.InGameName, "KeySkill", textBox_Skill.Text, ".\\" + filename);
             WritePrivateProfileString(MainWindow.InGameName, "KeyCombo1", textBox_Combo1.Text, ".\\" + filename);
             WritePrivateProfileString(MainWindow.InGameName, "KeyCombo2", textBox_Combo2.Text, ".\\" + filename);
@@ -56,22 +57,26 @@ namespace MapleRobots
                 {
                     Keys key;
 
+                    textBox_Attack.Text = Hack.iniReader(".\\" + filename, MainWindow.InGameName, "KeyAttack", false, "", out MainWindow.keyAttack);
                     textBox_Teleport.Text = Hack.iniReader(".\\" + filename, MainWindow.InGameName, "KeyTeleport", false, "", out MainWindow.keyTeleport);
                     textBox_PickUp.Text = Hack.iniReader(".\\" + filename, MainWindow.InGameName, "KeyPickUp", false, "", out MainWindow.keyPickUp);
-                    textBox_Attack.Text = Hack.iniReader(".\\" + filename, MainWindow.InGameName, "KeyAttack", false, "", out MainWindow.keyAttack);
                     textBox_Jump.Text = Hack.iniReader(".\\" + filename, MainWindow.InGameName, "KeyJump", false, "", out MainWindow.keyJump);
-                    textBox_Door.Text = Hack.iniReader(".\\" + filename, MainWindow.InGameName, "KeyDoor", false, "", out MainWindow.keyDoor);
+                    //textBox_Door.Text = Hack.iniReader(".\\" + filename, MainWindow.InGameName, "KeyDoor", false, "", out MainWindow.keyDoor);
                     textBox_Skill.Text = Hack.iniReader(".\\" + filename, MainWindow.InGameName, "KeySkill", false, "", out MainWindow.keySkill);
                     textBox_Combo1.Text = Hack.iniReader(".\\" + filename, MainWindow.InGameName, "KeyCombo1", false, "", out MainWindow.keyCombo1);
                     textBox_Combo2.Text = Hack.iniReader(".\\" + filename, MainWindow.InGameName, "KeyCombo2", false, "", out MainWindow.keyCombo2);
 
                     textBox_Combo1Delay.Text = Hack.iniReader(".\\" + filename, MainWindow.InGameName,
-                      "KeyCombo1Delay", true, "", out key);
+                      "KeyCombo1Delay", true, "3000", out key);
                     int.TryParse(textBox_Combo1Delay.Text, out MainWindow.delayComboKey1);
 
                     textBox_Combo2Delay.Text = Hack.iniReader(".\\" + filename, MainWindow.InGameName,
-                      "KeyCombo2Delay", true, "", out key);
+                      "KeyCombo2Delay", true, "3000", out key);
                     int.TryParse(textBox_Combo2Delay.Text, out MainWindow.delayComboKey2);
+
+                    textBox_AttackParam.Text = Hack.iniReader(".\\" + filename, MainWindow.InGameName,
+                      "AttackParam", true, "50", out key);
+                    int.TryParse(textBox_AttackParam.Text, out MainWindow.attackParam);
                 }
                 catch
                 {
@@ -110,11 +115,11 @@ namespace MapleRobots
             textBox_Jump.Text = MainWindow.keyJump.ToString();
         }
 
-        private void textBox_Door_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        /*private void textBox_Door_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
         {
             MainWindow.keyDoor = (System.Windows.Forms.Keys)KeyInterop.VirtualKeyFromKey(e.Key);
             textBox_Door.Text = MainWindow.keyDoor.ToString();
-        }
+        }*/
 
         private void textBox_Skill_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
         {
@@ -168,6 +173,21 @@ namespace MapleRobots
             }
         }
 
-        
+        private void textBox_AttackParam_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (textBox_Combo2Delay.Text == "")
+                return;
+            else
+            {
+                try
+                {
+                    MainWindow.attackParam = int.Parse(textBox_AttackParam.Text);
+                }
+                catch
+                {
+                    System.Windows.MessageBox.Show("請輸入數字");
+                }
+            }
+        }
     }
 }

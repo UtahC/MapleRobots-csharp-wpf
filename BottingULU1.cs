@@ -38,6 +38,7 @@ namespace MapleRobots
         internal static void training()
         {
             int counter = 0;
+            Thread.Sleep(500);
             //training start
             while (true)
             {

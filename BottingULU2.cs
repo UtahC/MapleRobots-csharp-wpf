@@ -35,6 +35,7 @@ namespace MapleRobots
         static void training1hit()
         {
             int counter = 0;
+            Thread.Sleep(500);
             //training start
             while (true)
             {
@@ -106,6 +107,7 @@ namespace MapleRobots
         static void training2hit()
         {
             int counter = 0;
+            Thread.Sleep(500);
             //training start
             while (true)
             {

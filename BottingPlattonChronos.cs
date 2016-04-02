@@ -35,6 +35,7 @@ namespace MapleRobots
         internal static void bottingPlatoonChronosTraining()
         {
             int counter = 0;
+            Thread.Sleep(500);
             //training start
             while (true)
             {
@@ -96,7 +97,7 @@ namespace MapleRobots
                 {
                     Hack.KeyDown(WindowHwnd, Keys.Down);
                     Thread.Sleep(50);
-                    Hack.KeyPress(WindowHwnd, Keys.Menu);
+                    Hack.KeyPress(WindowHwnd, MainWindow.keyJump);
                     Thread.Sleep(30);
                     Hack.KeyUp(WindowHwnd, Keys.Down);
                 }
