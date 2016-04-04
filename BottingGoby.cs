@@ -10,7 +10,7 @@ namespace MapleRobots
 {
     class BottingGoby : BottingBase
     {
-        internal static void bottingGoby()
+        internal static void botting()
         {
             object outX = -1, outY = -1;
             int lastItemX, lastItemY;

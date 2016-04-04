@@ -251,11 +251,14 @@ namespace MapleRobots
         {
             int CharacterX, CharacterY, CharacterStatus;
             CharacterStatus = Hack.ReadInt(MainWindow.process, MainWindow.CharacterStatusBaseAdr, MainWindow.CharacterStatusOffset);
-            if (CharacterStatus < 14 || CharacterStatus > 17)
+            if (isStand())
             {
                 GoToNearX(coorX, leftDistance, rightDistance);
-                Hack.KeyPress(WindowHwnd, MainWindow.keyJump);
-                GoToXInAir(coorX, 4, true, true);
+                if (nowFloor == 3)
+                {
+                    Hack.KeyPress(WindowHwnd, MainWindow.keyJump);
+                    GoToXInAir(coorX, 4, true, true);
+                }
             }
 
             CharacterX = Hack.ReadInt(MainWindow.process, MainWindow.CharacterXBaseAdr, MainWindow.CharacterXOffset);

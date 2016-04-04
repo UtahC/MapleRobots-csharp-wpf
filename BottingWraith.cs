@@ -8,7 +8,7 @@ namespace MapleRobots
 {
     class BottingWraith : BottingBase
     {
-        internal static void bottingWraith()//大幽靈
+        internal static void botting()//大幽靈
         {
             int counter = 0;
             //training start

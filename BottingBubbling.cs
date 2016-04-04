@@ -8,7 +8,7 @@ namespace MapleRobots
 {
     class BottingBubbling : BottingBase
     {
-        internal static void bottingBubbling()
+        internal static void botting()
         {
             int counter = 0;
             //training start
@@ -46,7 +46,7 @@ namespace MapleRobots
                     RopeExiting(true);
                 }
                 GoToX(2801);
-                upstairTeleport(73);
+                //upstairTeleport(73);
                 Attack(1);
                 GoToX(2027);
                 upstairTeleport(73);

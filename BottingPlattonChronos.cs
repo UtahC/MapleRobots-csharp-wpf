@@ -10,7 +10,7 @@ namespace MapleRobots
     class BottingPlattonChronos : BottingBase
     {
         static int nowFloor = 0;
-        internal static void bottingPlatoonChronos()//進化妖魔
+        internal static void botting()//進化妖魔
         {
             _threadOfTraining = new Thread(bottingPlatoonChronosTraining);
             _threadOfTraining.Start();

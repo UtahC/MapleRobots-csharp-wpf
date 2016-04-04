@@ -9,7 +9,7 @@ namespace MapleRobots
     class BottingGhostShip1 : BottingBase
     {
         static int nowFloor = 0;
-        internal static void bottingGS1()
+        internal static void botting()
         {
             _threadOfTraining = new Thread(bottingGhostShip1Training);
             _threadOfTraining.Start();

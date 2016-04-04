@@ -8,7 +8,7 @@ namespace MapleRobots
 {
     class BottingTeddy : BottingBase
     {
-        internal static void bottingTeddy()//發條熊
+        internal static void botting()//發條熊
         {
             int CharacterX, CharacterY, counter = 0;
             //training start

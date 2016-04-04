@@ -8,7 +8,7 @@ namespace MapleRobots
 {
     class BottingWildBoar : BottingBase
     {
-        internal static void bottingWildBoar()//黑肥肥
+        internal static void botting()//黑肥肥
         {
             int counter = 0;
             //training start

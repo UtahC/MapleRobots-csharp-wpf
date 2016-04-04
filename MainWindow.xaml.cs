@@ -33,6 +33,7 @@ namespace MapleRobots
         private static extern long WritePrivateProfileString(string section,
         string key, string val, string filePath);
 
+        Version programVersion;
         bool isOldVersion = false;
 
         private const int HOTKEY_ID = 9000;
@@ -98,7 +99,7 @@ namespace MapleRobots
 
         public MainWindow()
         {
-            Version programVersion, serverVersion;
+            Version serverVersion;
             string strVersion = "";
             using (var conn = new SqlConnection("Server=tcp:MapleRobots.no-ip.org,1433;Database=MapleRobots;User ID=sa;Password=753951;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;"))
             {
@@ -206,6 +207,8 @@ namespace MapleRobots
                 _threadOfBotting.Abort();
             if (_threadOfPickUp != null && _threadOfPickUp.IsAlive)
                 _threadOfPickUp.Abort();
+            if (_threadOfBossing != null && _threadOfBossing.IsAlive)
+                _threadOfBossing.Abort();
             if (_threadOfAlarmForPlayer != null && _threadOfAlarmForPlayer.IsAlive)
                 _threadOfAlarmForPlayer.Abort();
             if (BottingBase._threadOfTraining != null && BottingBase._threadOfTraining.IsAlive)
@@ -469,7 +472,8 @@ namespace MapleRobots
         private void comboBox_BottingCase_Loaded(object sender, RoutedEventArgs e)
         {
             List <string> data = new List <string> ();
-            
+
+            data.Add("尚未選擇");
             data.Add("籃水靈");
             data.Add("黑肥肥");
             data.Add("發條熊");
@@ -498,9 +502,14 @@ namespace MapleRobots
               comboBox_BottingCase.SelectedItem.ToString() == "石頭人" ||
               comboBox_BottingCase.SelectedItem.ToString() == "骨龍" ||
               comboBox_BottingCase.SelectedItem.ToString() == "烏賊")
+            {
                 comboBox_BottingHits.Visibility = Visibility.Visible;
+            }
             else
+            {
                 comboBox_BottingHits.Visibility = Visibility.Hidden;
+                comboBox_BottingHits.SelectedIndex = 0;
+            }
                 
         }
 
@@ -646,6 +655,11 @@ namespace MapleRobots
 
         private void checkBox_PressKey_Unchecked(object sender, RoutedEventArgs e)
         {
+            if (_threadOfKeyPresser != null)
+            {
+                _threadOfKeyPresser.Abort();
+                _threadOfKeyPresser = null;
+            }
             AutoKey.mre_KeyPresser.Reset();
         }
 
@@ -660,8 +674,11 @@ namespace MapleRobots
 
         private void checkBox_PickUp_Unchecked(object sender, RoutedEventArgs e)
         {
-            _threadOfPickUp.Abort();
-            _threadOfPickUp = null;
+            if (_threadOfPickUp != null)
+            {
+                _threadOfPickUp.Abort();
+                _threadOfPickUp = null;
+            }
         }
 
         private void checkBox_Botting_Checked(object sender, RoutedEventArgs e)
@@ -686,216 +703,51 @@ namespace MapleRobots
                     timer2.Start();
                     if (comboBox_BottingHits.SelectedItem.ToString() == "2hit")
                         BottingBase.hit = 2;
-                    if (comboBox_BottingCase.SelectedIndex == -1)
+
+                    if (checkMap(comboBox_BottingCase.SelectedItem.ToString()))
+                    {
+                        if (comboBox_BottingCase.SelectedItem.ToString() == "魚窩")
+                            _threadOfBotting = new Thread(BottingGoby.botting);
+                        else if (comboBox_BottingCase.SelectedItem.ToString() == "籃水靈")
+                            _threadOfBotting = new Thread(BottingBubbling.botting);
+                        else if (comboBox_BottingCase.SelectedItem.ToString() == "黑肥肥")
+                            _threadOfBotting = new Thread(BottingWildBoar.botting);
+                        else if (comboBox_BottingCase.SelectedItem.ToString() == "發條熊")
+                            _threadOfBotting = new Thread(BottingTeddy.botting);
+                        else if (comboBox_BottingCase.SelectedItem.ToString() == "小幽靈")
+                            _threadOfBotting = new Thread(BottingJrWraith.botting);
+                        else if (comboBox_BottingCase.SelectedItem.ToString() == "進化妖魔")
+                            _threadOfBotting = new Thread(BottingPlattonChronos.botting);
+                        else if (comboBox_BottingCase.SelectedItem.ToString() == "妖魔隊長")
+                            _threadOfBotting = new Thread(BottingMasterChronos.botting);
+                        else if (comboBox_BottingCase.SelectedItem.ToString() == "大幽靈")
+                            _threadOfBotting = new Thread(BottingWraith.botting);
+                        else if (comboBox_BottingCase.SelectedItem.ToString() == "GS1")
+                            _threadOfBotting = new Thread(BottingGhostShip1.botting);
+                        else if (comboBox_BottingCase.SelectedItem.ToString() == "GS5")
+                            _threadOfBotting = new Thread(BottingGhostShip5.botting);
+                        else if (comboBox_BottingCase.SelectedItem.ToString() == "GS2")
+                            _threadOfBotting = new Thread(BottingGhostShip2.botting);
+                        else if (comboBox_BottingCase.SelectedItem.ToString() == "WS")
+                            _threadOfBotting = new Thread(BottingWolfSpider.botting);
+                        else if (comboBox_BottingCase.SelectedItem.ToString() == "ULU1")
+                            _threadOfBotting = new Thread(BottingULU1.botting);
+                        else if (comboBox_BottingCase.SelectedItem.ToString() == "ULU2")
+                            _threadOfBotting = new Thread(BottingULU2.botting);
+                        else if (comboBox_BottingCase.SelectedItem.ToString() == "烏賊")
+                            _threadOfBotting = new Thread(BottingSquid.botting);
+                        else if (comboBox_BottingCase.SelectedItem.ToString() == "石頭人")
+                            _threadOfBotting = new Thread(BottingPetri.botting);
+                        else if (comboBox_BottingCase.SelectedItem.ToString() == "骨龍")
+                            _threadOfBotting = new Thread(BottingSkele.botting);
+                    }
+                    else
                     {
                         timer2.Stop();
                         checkBox_Botting.IsChecked = false;
-                        Hack.ShowMessageBox("請先選擇練功地點");
+                        if (comboBox_BottingCase.SelectedItem.ToString() != "尚未選擇")
+                            Hack.ShowMessageBox("請先前往該地圖");
                         return;
-                    }
-                    else if (comboBox_BottingCase.SelectedItem.ToString() == "魚窩")
-                    {
-                        if (mapID != 230040100)
-                        {
-                            timer2.Stop();
-                            checkBox_Botting.IsChecked = false;
-                            Hack.ShowMessageBox("請先前往該地圖");
-                            return;
-                        }
-                        else
-                            _threadOfBotting = new Thread(BottingGoby.bottingGoby);
-                    }
-                    else if (comboBox_BottingCase.SelectedItem.ToString() == "籃水靈") 
-                    {
-                        if (mapID != 103000101)
-                        {
-                            timer2.Stop();
-                            checkBox_Botting.IsChecked = false;
-                            Hack.ShowMessageBox("請先前往該地圖");
-                            return;
-                        }
-                        else
-                            _threadOfBotting = new Thread(BottingBubbling.bottingBubbling);
-                    }
-                    else if (comboBox_BottingCase.SelectedItem.ToString() == "黑肥肥") 
-                    {
-                        if (mapID != 101040001)
-                        {
-                            timer2.Stop();
-                            checkBox_Botting.IsChecked = false;
-                            Hack.ShowMessageBox("請先前往該地圖");
-                            return;
-                        }
-                        else
-                            _threadOfBotting = new Thread(BottingWildBoar.bottingWildBoar);
-                    }
-                    else if (comboBox_BottingCase.SelectedItem.ToString() == "發條熊")
-                    {
-                        if (mapID != 220010500)
-                        {
-                            timer2.Stop();
-                            checkBox_Botting.IsChecked = false;
-                            Hack.ShowMessageBox("請先前往該地圖");
-                            return;
-                        }
-                        else
-                            _threadOfBotting = new Thread(BottingTeddy.bottingTeddy);
-                    }
-                    else if (comboBox_BottingCase.SelectedItem.ToString() == "小幽靈") 
-                    {
-                        if (mapID != 103000103)
-                        {
-                            timer2.Stop();
-                            checkBox_Botting.IsChecked = false;
-                            Hack.ShowMessageBox("請先前往該地圖");
-                            return;
-                        }
-                        else
-                            _threadOfBotting = new Thread(BottingJrWraith.bottingJrWraith);
-                    }
-                    else if (comboBox_BottingCase.SelectedItem.ToString() == "進化妖魔")
-                    {
-                        if (mapID != 220040000)
-                        {
-                            timer2.Stop();
-                            checkBox_Botting.IsChecked = false;
-                            Hack.ShowMessageBox("請先前往該地圖");
-                            return;
-                        }
-                        else
-                            _threadOfBotting = new Thread(BottingPlattonChronos.bottingPlatoonChronos);
-                    }
-                    else if (comboBox_BottingCase.SelectedItem.ToString() == "妖魔隊長")
-                    {
-                        if (mapID != 220040400)
-                        {
-                            timer2.Stop();
-                            checkBox_Botting.IsChecked = false;
-                            Hack.ShowMessageBox("請先前往該地圖");
-                            return;
-                        }
-                        else
-                            _threadOfBotting = new Thread(BottingMasterChronos.bottingPlatoonChronos);
-                    }
-                    else if (comboBox_BottingCase.SelectedItem.ToString() == "大幽靈") 
-                    {
-                        if (mapID != 103000105)
-                        {
-                            timer2.Stop();
-                            checkBox_Botting.IsChecked = false;
-                            Hack.ShowMessageBox("請先前往該地圖");
-                            return;
-                        }
-                        else
-                            _threadOfBotting = new Thread(BottingWraith.bottingWraith);
-                    }
-                    else if (comboBox_BottingCase.SelectedItem.ToString() == "GS1")
-                    {
-                        if (mapID != 541010000)
-                        {
-                            timer2.Stop();
-                            checkBox_Botting.IsChecked = false;
-                            Hack.ShowMessageBox("請先前往該地圖");
-                            return;
-                        }
-                        else
-                            _threadOfBotting = new Thread(BottingGhostShip1.bottingGS1);
-                    }
-                    else if (comboBox_BottingCase.SelectedItem.ToString() == "GS5")
-                    {
-                        if (mapID != 541010040)
-                        {
-                            timer2.Stop();
-                            checkBox_Botting.IsChecked = false;
-                            Hack.ShowMessageBox("請先前往該地圖");
-                            return;
-                        }
-                        else
-                            _threadOfBotting = new Thread(BottingGhostShip5.bottingGS5);
-                    }
-                    else if (comboBox_BottingCase.SelectedItem.ToString() == "GS2") 
-                    {
-                        if (mapID != 541010010)
-                        {
-                            timer2.Stop();
-                            checkBox_Botting.IsChecked = false;
-                            Hack.ShowMessageBox("請先前往該地圖");
-                            return;
-                        }
-                        else
-                            _threadOfBotting = new Thread(BottingGhostShip2.bottingGS2);
-                    }
-                    else if (comboBox_BottingCase.SelectedItem.ToString() == "WS") 
-                    {
-                        if (mapID != 600020300)
-                        {
-                            timer2.Stop();
-                            checkBox_Botting.IsChecked = false;
-                            Hack.ShowMessageBox("請先前往該地圖");
-                            return;
-                        }
-                        else
-                            _threadOfBotting = new Thread(BottingWolfSpider.botting);
-                    }
-                    else if (comboBox_BottingCase.SelectedItem.ToString() == "ULU1")
-                    {
-                        if (mapID != 541020100)
-                        {
-                            timer2.Stop();
-                            checkBox_Botting.IsChecked = false;
-                            Hack.ShowMessageBox("請先前往該地圖");
-                            return;
-                        }
-                        else
-                            _threadOfBotting = new Thread(BottingULU1.botting);
-                    }
-                    else if (comboBox_BottingCase.SelectedItem.ToString() == "ULU2")
-                    {
-                        if (mapID != 541020200)
-                        {
-                            timer2.Stop();
-                            checkBox_Botting.IsChecked = false;
-                            Hack.ShowMessageBox("請先前往該地圖");
-                            return;
-                        }
-                        else
-                            _threadOfBotting = new Thread(BottingULU2.botting);
-                    }
-                    else if (comboBox_BottingCase.SelectedItem.ToString() == "烏賊")
-                    {
-                        if (mapID != 230040300)
-                        {
-                            timer2.Stop();
-                            checkBox_Botting.IsChecked = false;
-                            Hack.ShowMessageBox("請先前往該地圖");
-                            return;
-                        }
-                        else
-                            _threadOfBotting = new Thread(BottingSquid.botting);
-                    }
-                    else if (comboBox_BottingCase.SelectedItem.ToString() == "石頭人")
-                    {
-                        if (mapID != 541020500)
-                        {
-                            timer2.Stop();
-                            checkBox_Botting.IsChecked = false;
-                            Hack.ShowMessageBox("請先前往該地圖");
-                            return;
-                        }
-                        else
-                            _threadOfBotting = new Thread(BottingPetri.botting);
-                    }
-                    else if (comboBox_BottingCase.SelectedItem.ToString() == "骨龍")
-                    {
-                        if (mapID != 240040511)
-                        {
-                            timer2.Stop();
-                            checkBox_Botting.IsChecked = false;
-                            Hack.ShowMessageBox("請先前往該地圖");
-                            return;
-                        }
-                        else
-                            _threadOfBotting = new Thread(BottingSkele.botting);
                     }
                     Hack.SetForegroundWindow(WindowHwnd);
                     _threadOfBotting.Start();
@@ -969,9 +821,15 @@ namespace MapleRobots
             }
             if ((bool)checkBox_NoBreath.IsChecked)
                 Hack.WriteInt(process, BreathBaseAdr, BreathOffset, 0);
-            if ((bool)checkBox_Botting.IsChecked && (bool)checkBox_PlayerAlarm.IsChecked)
+            if ((bool)checkBox_Botting.IsChecked)
             {
-                if (Hack.ReadInt(process, PlayerCountBaseAdr, PlayerCountOffset) > PlayerCountAlarm)
+                if (!checkMap(comboBox_BottingCase.SelectedItem.ToString()))
+                {
+                    checkBox_Botting.IsChecked = false;
+                    Hack.ShowMessageBox("請先前往該地圖");
+                }
+                if ((bool)checkBox_PlayerAlarm.IsChecked && 
+                  Hack.ReadInt(process, PlayerCountBaseAdr, PlayerCountOffset) > PlayerCountAlarm)
                 {
                     if (_threadOfAlarmForPlayer == null)
                     {
@@ -1071,26 +929,71 @@ namespace MapleRobots
                     cmd.CommandText = @"
                     SELECT Point
                     FROM dbo.RobotsUser
-                    WHERE InGameName = @InGameName;";
+                    WHERE MAC = @MAC;";
+                    cmd.Parameters.AddWithValue("@MAC", macList[0].ToString());
                     cmd.Parameters.AddWithValue("@InGameName", IGN);
+                    cmd.Parameters.AddWithValue("@DeltaPoint", deltaPoint);
+                    cmd.Parameters.AddWithValue("@IP", localIP);
+                    cmd.Parameters.AddWithValue("@Version", programVersion.ToString());
+                    cmd.Parameters.AddWithValue("@MAP", comboBox_BottingCase.SelectedItem.ToString());
                     userPoint = (int)cmd.ExecuteScalar();
                     updatedUserPoint = userPoint + deltaPoint;
-                    cmd.CommandText = @"
-                    INSERT INTO dbo.RobotsUserLog ( InGameName, DeltaPoint, Point, Time ,MAC, IP)
-                    OUTPUT INSERTED.Point
-                    VALUES (@InGameName, @DeltaPoint, @updatedPoint, CURRENT_TIMESTAMP, @MAC, @IP);
-                    UPDATE dbo.RobotsUser
-                    SET Point = @updatedPoint, LastestTime = CURRENT_TIMESTAMP
-                    WHERE InGameName = @InGameName;";
-                    cmd.Parameters.AddWithValue("@DeltaPoint", deltaPoint);
-                    cmd.Parameters.AddWithValue("@updatedPoint", updatedUserPoint);
-                    cmd.Parameters.AddWithValue("@MAC", macList[0].ToString());
-                    cmd.Parameters.AddWithValue("@IP", localIP);
-                    userPoint = (int)cmd.ExecuteScalar();
                 }
                 catch
                 {
-                    updatedUserPoint = 0;
+                    try
+                    {
+                        cmd.CommandText = @"
+                        SELECT Point
+                        FROM dbo.RobotsUser
+                        WHERE InGameName = @InGameName;";
+                        userPoint = (int)cmd.ExecuteScalar();
+                        updatedUserPoint = userPoint + deltaPoint;
+                    }
+                    catch
+                    {
+                        updatedUserPoint = 0;
+                    }
+                }
+                try
+                {
+                    cmd.CommandText = @"
+                    SELECT Point
+                    FROM dbo.RobotsUserLog
+                    WHERE InGameName = @InGameName
+                      AND MAC = @MAC
+                      AND IP = @IP
+                      AND Version = @Version
+                      AND MAP = @MAP
+                      AND CONVERT (date, Time) = CONVERT (date, CURRENT_TIMESTAMP);
+
+                    UPDATE dbo.RobotsUserLog
+                    SET DeltaPoint = DeltaPoint + @DeltaPoint, Point = @updatedPoint
+                    WHERE InGameName = @InGameName
+                      AND MAC = @MAC
+                      AND IP = @IP
+                      AND Version = @Version
+                      AND MAP = @MAP
+                      AND CONVERT (date, Time) = CONVERT (date, CURRENT_TIMESTAMP);
+
+                    UPDATE dbo.RobotsUser
+                    SET Point = @updatedPoint, LastestTime = CURRENT_TIMESTAMP
+                    WHERE InGameName = @InGameName OR MAC = @MAC;";
+                    cmd.Parameters.AddWithValue("@updatedPoint", updatedUserPoint);
+                    int temp = (int)cmd.ExecuteScalar();
+                    Debug.WriteLine(temp.ToString());
+                }
+                catch
+                {
+                    Debug.WriteLine("catch");
+                    cmd.CommandText = @"
+                    INSERT INTO dbo.RobotsUserLog ( InGameName, DeltaPoint, Point, Time ,MAC, IP, Version, MAP)
+                    OUTPUT INSERTED.Point
+                    VALUES (@InGameName, @DeltaPoint, @updatedPoint, CURRENT_TIMESTAMP, @MAC, @IP, @Version, @MAP);
+                    UPDATE dbo.RobotsUser
+                    SET Point = @updatedPoint, LastestTime = CURRENT_TIMESTAMP
+                    WHERE InGameName = @InGameName OR MAC = @MAC;";
+                    int temp = (int)cmd.ExecuteScalar();
                 }
                 return updatedUserPoint;
             }
@@ -1359,6 +1262,135 @@ namespace MapleRobots
             }
         }
 
+        private bool checkMap(string mapName)
+        {
+            int mapID = Hack.ReadInt(process, MapIDBaseAdr, MapIDOffset);
+            if (comboBox_BottingCase.SelectedItem.ToString() == "魚窩")
+            {
+                if (mapID != 230040100)
+                    return false;
+                else
+                    return true;
+            }
+            else if (comboBox_BottingCase.SelectedItem.ToString() == "籃水靈")
+            {
+                if (mapID != 103000101)
+                    return false;
+                else
+                    return true;
+            }
+            else if (comboBox_BottingCase.SelectedItem.ToString() == "黑肥肥")
+            {
+                if (mapID != 101040001)
+                    return false;
+                else
+                    return true;
+            }
+            else if (comboBox_BottingCase.SelectedItem.ToString() == "發條熊")
+            {
+                if (mapID != 220010500)
+                    return false;
+                else
+                    return true;
+            }
+            else if (comboBox_BottingCase.SelectedItem.ToString() == "小幽靈")
+            {
+                if (mapID != 103000103)
+                    return false;
+                else
+                    return true;
+            }
+            else if (comboBox_BottingCase.SelectedItem.ToString() == "進化妖魔")
+            {
+                if (mapID != 220040000)
+                    return false;
+                else
+                    return true;
+            }
+            else if (comboBox_BottingCase.SelectedItem.ToString() == "妖魔隊長")
+            {
+                if (mapID != 220040400)
+                    return false;
+                else
+                    return true;
+            }
+            else if (comboBox_BottingCase.SelectedItem.ToString() == "大幽靈")
+            {
+                if (mapID != 103000105)
+                    return false;
+                else
+                    return true;
+            }
+            else if (comboBox_BottingCase.SelectedItem.ToString() == "GS1")
+            {
+                if (mapID != 541010000)
+                    return false;
+                else
+                    return true;
+            }
+            else if (comboBox_BottingCase.SelectedItem.ToString() == "GS5")
+            {
+                if (mapID != 541010040)
+                    return false;
+                else
+                    return true;
+            }
+            else if (comboBox_BottingCase.SelectedItem.ToString() == "GS2")
+            {
+                if (mapID != 541010010)
+                    return false;
+                else
+                    return true;
+            }
+            else if (comboBox_BottingCase.SelectedItem.ToString() == "WS")
+            {
+                if (mapID != 600020300)
+                    return false;
+                else
+                    return true;
+            }
+            else if (comboBox_BottingCase.SelectedItem.ToString() == "ULU1")
+            {
+                if (mapID != 541020100)
+                    return false;
+                else
+                    return true;
+            }
+            else if (comboBox_BottingCase.SelectedItem.ToString() == "ULU2")
+            {
+                if (mapID != 541020200)
+                    return false;
+                else
+                    return true;
+            }
+            else if (comboBox_BottingCase.SelectedItem.ToString() == "烏賊")
+            {
+                if (mapID != 230040300)
+                    return false;
+                else
+                    return true;
+            }
+            else if (comboBox_BottingCase.SelectedItem.ToString() == "石頭人")
+            {
+                if (mapID != 541020500)
+                    return false;
+                else
+                    return true;
+            }
+            else if (comboBox_BottingCase.SelectedItem.ToString() == "骨龍")
+            {
+                if (mapID != 240040511)
+                    return false;
+                else
+                    return true;
+            }
+            else
+            {
+                Hack.ShowMessageBox("請先選擇模組");
+                return false;
+            }
+        }
+
         private void DownLoadFile()
         {
             //lbProgress.Content = "正在更新中..";
@@ -1442,7 +1474,6 @@ namespace MapleRobots
             }
             ftpResp.Close();
             Hack.ShowMessageBox("已更新完畢，即將重啟程式");
-            
         }
     }
 }
