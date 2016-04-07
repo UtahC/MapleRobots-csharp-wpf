@@ -5,13 +5,13 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MapleRobots"
         mc:Ignorable="d"
-        Title="熱鍵設定" Height="435.802" Width="279.013" Closed="Window_Closed" Loaded="Window_Loaded" WindowStyle="ToolWindow" Icon="1458251390_science-technology-10.ico" ResizeMode="NoResize">
+        Title="熱鍵設定" Height="188.31" Width="279.013" Closed="Window_Closed" Loaded="Window_Loaded" WindowStyle="ToolWindow" Icon="1458251390_science-technology-10.ico" ResizeMode="NoResize">
     <Grid>
-        <Label x:Name="label" Content="順移*" HorizontalAlignment="Left" Margin="22,38,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="label" Content="順移" HorizontalAlignment="Left" Margin="22,38,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="textBox_Teleport" HorizontalAlignment="Left" Height="23" Margin="56,40,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="55" IsReadOnly="True" KeyUp="textBox_Teleport_KeyUp"/>
-        <Label x:Name="label_Copy" Content="攻擊鍵*" HorizontalAlignment="Left" Margin="10,9,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="label_Copy" Content="攻擊鍵" HorizontalAlignment="Left" Margin="10,9,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="textBox_Attack" HorizontalAlignment="Left" Height="23" Margin="56,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="55" IsReadOnly="True" Text="ex.天怒" KeyUp="textBox_Attack_KeyUp"/>
-        <Label x:Name="label_Copy1" Content="撿取*" HorizontalAlignment="Left" Margin="170,38,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="label_Copy1" Content="撿取" HorizontalAlignment="Left" Margin="170,38,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="textBox_PickUp" HorizontalAlignment="Left" Height="23" Margin="204,40,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="55" IsReadOnly="True" KeyUp="textBox_PickUp_KeyUp"/>
         <Label x:Name="label_Copy5" Content="組合鍵1" HorizontalAlignment="Left" Margin="3,99,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="textBox_Combo1" HorizontalAlignment="Left" Height="23" Margin="56,102,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="55" IsReadOnly="True" KeyUp="textBox_Combo1_KeyUp"/>
@@ -23,16 +23,10 @@
         <TextBox x:Name="textBox_Combo2Delay" HorizontalAlignment="Left" Height="23" Margin="204,130,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="55" TextChanged="textBox_Combo2Delay_TextChanged"/>
         <Label x:Name="label_Copy7" Content="輔助技" HorizontalAlignment="Left" Margin="10,67,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="textBox_Skill" HorizontalAlignment="Left" Height="23" Margin="56,70,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="55" IsReadOnly="True" KeyUp="textBox_Skill_KeyUp" Text="ex.祈禱"/>
-        <Label x:Name="label2" Content="*為必填" HorizontalAlignment="Left" Margin="11,202,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="16"/>
-        <Label x:Name="label2_Copy" Content="正常情況下輔助技約兩分鐘施放一次" HorizontalAlignment="Left" Margin="11,241,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
-        <Label x:Name="label2_Copy1" Content="組合技約四分鐘施放一次" HorizontalAlignment="Left" Margin="71,267,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
-        <Label x:Name="label2_Copy2" Content="主教建議配置" HorizontalAlignment="Left" Margin="11,293,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
-        <Label x:Name="label2_Copy3" Content="組合技1: Holy Symbol + Maple Warrior" HorizontalAlignment="Left" Margin="11,319,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
-        <Label x:Name="label2_Copy4" Content="組合技2: Bless + Magic Guard + Invincible" HorizontalAlignment="Left" Margin="11,345,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
         <Label x:Name="label2_Copy5" Content="" HorizontalAlignment="Left" Margin="166,363,0,0" VerticalAlignment="Top" FontWeight="Bold"/>
-        <Label x:Name="label_Copy2" Content="跳躍*" HorizontalAlignment="Left" Margin="170,68,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="label_Copy2" Content="跳躍" HorizontalAlignment="Left" Margin="170,68,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="textBox_Jump" HorizontalAlignment="Left" Height="23" Margin="204,70,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="55" IsReadOnly="True" KeyUp="textBox_Jump_KeyUp"/>
-        <Label x:Name="label_Copy3" Content="攻擊參數*" HorizontalAlignment="Left" Margin="146,7,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="label_Copy3" Content="攻擊參數" HorizontalAlignment="Left" Margin="146,7,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="textBox_AttackParam" HorizontalAlignment="Left" Height="23" Margin="204,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="55" TextChanged="textBox_AttackParam_TextChanged" Text="50"/>
 
     </Grid>

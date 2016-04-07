@@ -22,19 +22,20 @@ namespace MapleRobots
         }
         internal static void KeyPresser()
         {
-            while (true)
+            while (MainWindow.keyWantToPress != System.Windows.Forms.Keys.None)
             {
-                Hack.KeyPress(MainWindow.WindowHwnd, MainWindow.keyWantToPress);
+                Hack.KeyDown(MainWindow.WindowHwnd, MainWindow.keyWantToPress);
                 Thread.Sleep(50);
                 mre_KeyPresser.WaitOne();
             }
         }
         internal static void Skill1()
         {
-            while (true)
+            while (MainWindow.keySkill1 != System.Windows.Forms.Keys.None && MainWindow.delaySkill1 > 0 && MainWindow.timeSkill1 > 0)
             { 
                 mre_KeyPresser.Reset();
                 mre_PickUp.Reset();
+                Thread.Sleep(500);
                 Hack.KeyPress(MainWindow.WindowHwnd, MainWindow.keySkill1);
                 Thread.Sleep(MainWindow.delaySkill1);
                 mre_KeyPresser.Set();
@@ -44,10 +45,11 @@ namespace MapleRobots
         }
         internal static void Skill2()
         {
-            while (true)
+            while (MainWindow.keySkill2 != System.Windows.Forms.Keys.None && MainWindow.delaySkill2 > 0 && MainWindow.timeSkill2 > 0)
             {
                 mre_KeyPresser.Reset();
                 mre_PickUp.Reset();
+                Thread.Sleep(500);
                 Hack.KeyPress(MainWindow.WindowHwnd, MainWindow.keySkill2);
                 Thread.Sleep(MainWindow.delaySkill2);
                 mre_KeyPresser.Set();

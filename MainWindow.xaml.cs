@@ -32,6 +32,8 @@ namespace MapleRobots
         [DllImport("kernel32", CharSet = CharSet.Unicode)]
         private static extern long WritePrivateProfileString(string section,
         string key, string val, string filePath);
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        private static extern int GetWindowText(int hWnd, StringBuilder title, int size);
 
         Version programVersion;
         bool isOldVersion = false;
@@ -101,7 +103,7 @@ namespace MapleRobots
         {
             Version serverVersion;
             string strVersion = "";
-            using (var conn = new SqlConnection("Server=tcp:MapleRobots.no-ip.org,1433;Database=MapleRobots;User ID=sa;Password=753951;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;"))
+            using (var conn = new SqlConnection("Server=tcp:mssql02.qsh.eu,1481;Database=db1012457-maplerobots;User ID=db1012457-maplerobots;Password=753951;Encrypt=False;TrustServerCertificate=True;Connection Timeout=30;"))
             {
                 var cmd = conn.CreateCommand();
                 try
@@ -534,7 +536,12 @@ namespace MapleRobots
                 //Console.WriteLine("Process: {0} ID: {1}", theprocess.ProcessName, theprocess.Id);
                 if (theprocess.ProcessName.Contains(".tmp"))
                 {
-                    data.Add(theprocess.ProcessName);
+                    string ign = Hack.ReadString(theprocess, CharacterNameBaseAdr, CharacterNameOffset, 15);
+                    ign = ign.Replace("\0", "");
+                    if (ign == "")
+                        ign = "-未登入-";
+                    data.Add(ign);
+                    
                     counter++;
                 }
             }
@@ -545,7 +552,12 @@ namespace MapleRobots
                     //Console.WriteLine("Process: {0} ID: {1}", theprocess.ProcessName, theprocess.Id);
                     if (theprocess.ProcessName.Contains("MapleRoyals"))
                     {
-                        data.Add(theprocess.ProcessName);
+                        string ign = Hack.ReadString(theprocess, CharacterNameBaseAdr, CharacterNameOffset, 15);
+                        ign = ign.Replace("\0", "");
+                        if (ign == "")
+                            ign = "-未登入-";
+                        data.Add(ign);
+                        data.Add(ign);
                     }
 
                 }
@@ -558,16 +570,19 @@ namespace MapleRobots
         private void comboBox_Process_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             Process[] processlist = Process.GetProcesses();
-
+            StringBuilder title = new StringBuilder(256);
             foreach (Process theprocess in processlist)
             {
-                //Console.WriteLine("Process: {0} ID: {1}", theprocess.ProcessName, theprocess.Id);
-                if (theprocess.ProcessName == comboBox_Process.SelectedItem.ToString())
+                if (theprocess.ProcessName.Contains("MapleRoyals") || theprocess.ProcessName.Contains(".tmp"))
                 {
-                    
-                    BindWindow(theprocess);
-                    process = theprocess;
-                    comboBox_Process.IsEnabled = false;
+                    string ign = Hack.ReadString(theprocess, CharacterNameBaseAdr, CharacterNameOffset, 15);
+                    ign = ign.Replace("\0", "");
+                    if (ign == comboBox_Process.SelectedItem.ToString())
+                    {
+                        BindWindow(theprocess);
+                        process = theprocess;
+                        comboBox_Process.IsEnabled = false;
+                    }
                 }
             }
         }
@@ -684,7 +699,8 @@ namespace MapleRobots
         private void checkBox_Botting_Checked(object sender, RoutedEventArgs e)
         {
             if (keyTeleport == Keys.None || keyPickUp == Keys.None || keyAttack == Keys.None
-                || keyJump == Keys.None || windowhotkey != null || attackParam <= 0)
+                || keyJump == Keys.None || windowhotkey != null || attackParam <= 0 || keySkill == Keys.None
+                || keyCombo1 == Keys.None || keyCombo2 == Keys.None || delayComboKey1 < 0 || delayComboKey2 < 0)
             {
                 checkBox_Botting.IsChecked = false;
                 Hack.ShowMessageBox("請先完成掛機設定");
@@ -890,7 +906,7 @@ namespace MapleRobots
 
         private int getPointFromDB (string IGN, int deltaPoint)
         {
-            using (var conn = new SqlConnection("Server=tcp:MapleRobots.no-ip.org,1433;Database=MapleRobots;User ID=sa;Password=753951;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;"))
+            using (var conn = new SqlConnection("Server=tcp:mssql02.qsh.eu,1481;Database=db1012457-maplerobots;User ID=db1012457-maplerobots;Password=753951;Encrypt=False;TrustServerCertificate=True;Connection Timeout=30;"))
             {
                 int userPoint, updatedUserPoint;
                 var cmd = conn.CreateCommand();
@@ -941,7 +957,7 @@ namespace MapleRobots
                 }
                 catch
                 {
-                    try
+                    /*try
                     {
                         cmd.CommandText = @"
                         SELECT Point
@@ -951,9 +967,9 @@ namespace MapleRobots
                         updatedUserPoint = userPoint + deltaPoint;
                     }
                     catch
-                    {
+                    {*/
                         updatedUserPoint = 0;
-                    }
+                    /*}*/
                 }
                 try
                 {
@@ -1001,7 +1017,7 @@ namespace MapleRobots
 
         private bool checkBanned()
         {
-            using (var conn = new SqlConnection("Server=tcp:MapleRobots.no-ip.org,1433;Database=MapleRobots;User ID=sa;Password=753951;Encrypt=True;TrustServerCertificate=True;Connection Timeout=30;"))
+            using (var conn = new SqlConnection("Server=tcp:mssql02.qsh.eu,1481;Database=db1012457-maplerobots;User ID=db1012457-maplerobots;Password=753951;Encrypt=False;TrustServerCertificate=True;Connection Timeout=30;"))
             {
                 var cmd = conn.CreateCommand();
                 NetworkInterface[] nics = NetworkInterface.GetAllNetworkInterfaces();
@@ -1398,7 +1414,7 @@ namespace MapleRobots
             string UName = "anonymous", UPWord = "";
             FtpWebRequest ftpReq;
             //宣告FTP連線
-            ftpReq = (FtpWebRequest)FtpWebRequest.Create(new Uri("ftp://maplerobots.no-ip.org/MapleRoyals/MapleRobots.exe"));
+            ftpReq = (FtpWebRequest)WebRequest.Create(new Uri("ftp://maplerobots.no-ip.org/MapleRoyals/MapleRobots.exe"));
             //取得欲下載檔案的大小(位元)存至 fiesize
             ftpReq.Method = WebRequestMethods.Ftp.GetFileSize;
             //認證
@@ -1406,7 +1422,7 @@ namespace MapleRobots
             int filesize = (int)ftpReq.GetResponse().ContentLength;
 
             //宣告FTP連線
-            ftpReq = (FtpWebRequest)FtpWebRequest.Create(new Uri("ftp://maplerobots.no-ip.org/MapleRoyals/MapleRobots.exe"));
+            ftpReq = (FtpWebRequest)WebRequest.Create(new Uri("ftp://maplerobots.no-ip.org/MapleRoyals/MapleRobots.exe"));
             //下載
             ftpReq.Method = WebRequestMethods.Ftp.DownloadFile;
             //認證
