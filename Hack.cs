@@ -264,25 +264,27 @@ namespace MapleRobots
             bottom = rct.Bottom;
         }
         public static void GetClientRectangle(IntPtr hwnd, int clientWidth, int clientHeight,
-            out int left, out int top, out int right, out int bottom)
+            out int left, out int top, out int right, out int bottom, out int leftBoundary, out int topBoundary)
         {
             GetWindowRectangle(hwnd, out left, out top, out right, out bottom);
-            left = (right - clientWidth) / 2;
-            top = bottom - clientHeight - left;
+            leftBoundary = ((right - clientWidth - left) / 2);
+            left = left + leftBoundary;
+            topBoundary = bottom - top - clientHeight - leftBoundary;
+            top = top + topBoundary;
             right = left + clientWidth;
             bottom = top + clientHeight;
         }
         public static void ClientToScreen(IntPtr hwnd, int clientX, int clientY, out int screenX, out int screenY)
         {// for MapleStory only
-            int left, top, right, bottom;
-            GetClientRectangle(hwnd, 800, 600, out left, out top, out right, out bottom);
+            int left, top, right, bottom, leftBoundary, topBoundary;
+            GetClientRectangle(hwnd, 800, 600, out left, out top, out right, out bottom, out leftBoundary, out topBoundary);
             screenX = clientX + left;
             screenY = clientY + top;
         }
         public static void ScreenToClient(IntPtr hwnd, int screenX, int screenY, out int clientX, out int clientY)
         {// for MapleStory only
-            int left, top, right, bottom;
-            GetClientRectangle(hwnd, 800, 600, out left, out top, out right, out bottom);
+            int left, top, right, bottom, leftBoundary, topBoundary;
+            GetClientRectangle(hwnd, 800, 600, out left, out top, out right, out bottom, out leftBoundary, out topBoundary);
             clientX = screenX - left;
             clientY = screenY - top;
         }
