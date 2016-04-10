@@ -57,5 +57,47 @@ namespace MapleRobots
                 Thread.Sleep(MainWindow.timeSkill2*1000 - MainWindow.delaySkill2);
             }
         }
+        internal static void Skill3()
+        {
+            while (MainWindow.keySkill3 != System.Windows.Forms.Keys.None && MainWindow.delaySkill3 > 0 && MainWindow.timeSkill3 > 0)
+            {
+                mre_KeyPresser.Reset();
+                mre_PickUp.Reset();
+                Thread.Sleep(500);
+                Hack.KeyPress(MainWindow.WindowHwnd, MainWindow.keySkill3);
+                Thread.Sleep(MainWindow.delaySkill3);
+                mre_KeyPresser.Set();
+                mre_PickUp.Set();
+                Thread.Sleep(MainWindow.timeSkill3 * 1000 - MainWindow.delaySkill3);
+            }
+        }
+        internal static void Skill4()
+        {
+            while (MainWindow.keySkill4 != System.Windows.Forms.Keys.None && MainWindow.delaySkill4 > 0 && MainWindow.timeSkill4 > 0)
+            {
+                mre_KeyPresser.Reset();
+                mre_PickUp.Reset();
+                Thread.Sleep(500);
+                Hack.KeyPress(MainWindow.WindowHwnd, MainWindow.keySkill4);
+                Thread.Sleep(MainWindow.delaySkill4);
+                mre_KeyPresser.Set();
+                mre_PickUp.Set();
+                Thread.Sleep(MainWindow.timeSkill4 * 1000 - MainWindow.delaySkill4);
+            }
+        }
+        internal static void Skill5()
+        {
+            while (MainWindow.keySkill5 != System.Windows.Forms.Keys.None && MainWindow.delaySkill5 > 0 && MainWindow.timeSkill5 > 0)
+            {
+                mre_KeyPresser.Reset();
+                mre_PickUp.Reset();
+                Thread.Sleep(500);
+                Hack.KeyPress(MainWindow.WindowHwnd, MainWindow.keySkill5);
+                Thread.Sleep(MainWindow.delaySkill5);
+                mre_KeyPresser.Set();
+                mre_PickUp.Set();
+                Thread.Sleep(MainWindow.timeSkill5 * 1000 - MainWindow.delaySkill5);
+            }
+        }
     }
 }

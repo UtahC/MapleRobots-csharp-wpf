@@ -115,7 +115,7 @@ namespace MapleRobots
                     GoToLocationInWater(doorX, doorY, 5, true, true, 230000000);
                     DateTime time_end = DateTime.Now;//計時結束 取得目前時間
                                                      //後面的時間減前面的時間後 轉型成TimeSpan即可印出時間差
-                    result = ((TimeSpan)(time_end - time_start)).TotalMilliseconds;
+                    result = ((time_end - time_start)).TotalMilliseconds;
                 }
             }
             AutoKey.mre_PickUp.Reset();

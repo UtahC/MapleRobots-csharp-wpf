@@ -14,14 +14,22 @@ namespace MapleRobots
         internal static void botting()
         {
             if (hit == 1)
+            {
                 _threadOfTraining = new Thread(training1hit);
+                _threadOfTraining.Name = "Petri1hit";
+            }
             else
+            {
                 _threadOfTraining = new Thread(training2hit);
+                _threadOfTraining.Name = "Petri2hit";
+            }
             _threadOfTraining.Start();
+            int CharacterY;
             while (true)
             {
                 CharacterX = getCharacterX();
-                int CharacterY = getCharacterY();
+                CharacterY = getCharacterY();
+
                 if (CharacterY <= -616)
                     nowFloor = 1;
                 else if (CharacterY > -616 && CharacterY <= -376)
@@ -64,8 +72,8 @@ namespace MapleRobots
                     GoToX(-35);
                     //go to position end
                     AutoKey.mre_PickUp.Reset();
-                    for (int i = 0; i < 50; i++)
-                        Hack.KeyPress(WindowHwnd, MainWindow.keySkill);
+                    for (int i = 0; i < 25; i++)
+                        Hack.KeyPress(WindowHwnd, MainWindow.keyCombo1);
                     AutoKey.mre_PickUp.Set();
                 }
                 if (nowFloor == 2)
@@ -121,10 +129,8 @@ namespace MapleRobots
                     GoToX(-35);
                     //go to position end
                     AutoKey.mre_PickUp.Reset();
-                    //for (int i = 0; i < 25; i++)
-                    Hack.KeyDown(WindowHwnd, MainWindow.keySkill);
-                    Thread.Sleep(1500);
-                    Hack.KeyUp(WindowHwnd, MainWindow.keySkill);
+                    for (int i = 0; i < 25; i++)
+                        Hack.KeyPress(WindowHwnd, MainWindow.keyCombo1);
                     AutoKey.mre_PickUp.Set();
                 }
                 if (nowFloor == 2)
@@ -186,12 +192,57 @@ namespace MapleRobots
                 while (originFloor == nowFloor)
                 {
                     if (targetFloor == 3)
-                        RopeClimbing(631, true, -136, 104, 60, 60);
+                        SpecialRopeClimbing(631, true, -136, 104, 60, 60, DateTime.Now);
                     else if (targetFloor == 2)
-                        RopeClimbing(765, true, -376, -136, 60, 60);
+                        SpecialRopeClimbing(765, true, -376, -136, 60, 60, DateTime.Now);
                     else if (targetFloor == 1)
-                        RopeClimbing(572, true, 572, -510, 60, 60);
+                        SpecialRopeClimbing(572, true, 572, -510, 60, 60, DateTime.Now);
                 }
+            }
+        }
+        static void SpecialRopeClimbing(int coorX, bool isClimbToTop, int topBoundary, int floorY, int leftDistance, int rightDistance, DateTime time_start)
+        {
+            int CharacterX, CharacterY, CharacterStatus;
+            CharacterStatus = Hack.ReadInt(MainWindow.process, MainWindow.CharacterStatusBaseAdr, MainWindow.CharacterStatusOffset);
+            DateTime time_end = DateTime.Now;//計時結束 取得目前時間
+                                             //後面的時間減前面的時間後 轉型成TimeSpan即可印出時間差
+            double result = ((time_end - time_start)).TotalMilliseconds;
+            if (result >= 5000 && isStand())
+            {
+                if (_threadOfTraining.Name == "Petri1hit")
+                    Attack(1);
+                else
+                    Attack(2);
+                time_start = DateTime.Now;
+            }
+            if (CharacterStatus < 14 || CharacterStatus > 17)
+            {
+                GoToNearX(coorX, leftDistance, rightDistance);
+                Hack.KeyPress(WindowHwnd, MainWindow.keyJump);
+                GoToXInAir(coorX, 4, true, true);
+            }
+            while (true)
+            {
+                CharacterX = Hack.ReadInt(MainWindow.process, MainWindow.CharacterXBaseAdr, MainWindow.CharacterXOffset);
+                CharacterY = Hack.ReadInt(MainWindow.process, MainWindow.CharacterYBaseAdr, MainWindow.CharacterYOffset);
+                CharacterStatus = Hack.ReadInt(MainWindow.process, MainWindow.CharacterStatusBaseAdr, MainWindow.CharacterStatusOffset);
+                if (CharacterY > floorY)
+                {
+                    break;
+                }
+                else if ((isClimbToTop && (CharacterY <= topBoundary) && ((CharacterStatus < 14) || (CharacterStatus > 17))) ||
+                    (isClimbToTop == false) && (CharacterY <= topBoundary))
+                {
+                    Thread.Sleep(1);
+                    Hack.KeyUp(WindowHwnd, Keys.Up);
+                    Hack.KeyUp(WindowHwnd, Keys.Right);
+                    Hack.KeyUp(WindowHwnd, Keys.Left);
+                    return;
+                }
+                else if (CharacterX >= coorX - 20 && CharacterX <= coorX + 20 && CharacterY <= floorY)
+                    Hack.KeyDown(WindowHwnd, Keys.Up);
+                else
+                    RopeClimbing(coorX, isClimbToTop, topBoundary, floorY, leftDistance, rightDistance);
             }
         }
     }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Windows.Forms;
 
 namespace MapleRobots
 {
@@ -29,12 +30,16 @@ namespace MapleRobots
         {
             int counter = 0;
             Thread.Sleep(500);
+            if (isOnRope() && getCharacterX() != 35)
+                RopeExiting(true);
             //training start
             while (true)
             {
                 if (counter % 10 == 0)
                 {
                     //go to position start
+                    if (getCharacterX() != 35)
+                        GoToFloor(2);
                     RopeClimbing(35, false, 297, 395, 60, 60);
                     //go to position end
                     AutoKey.mre_PickUp.Reset();
@@ -80,6 +85,20 @@ namespace MapleRobots
             while (Hack.ReadInt(MainWindow.process, MainWindow.MobCountBaseAdr, MainWindow.MobCountOffset) < 10)
             {
                 Thread.Sleep(1);
+            }
+        }
+        static void GoToFloor(int targetFloor)
+        {
+            if (targetFloor == 2)
+            {
+                while (nowFloor != 2)
+                {
+                    Hack.KeyDown(WindowHwnd, Keys.Down);
+                    Thread.Sleep(50);
+                    Hack.KeyPress(WindowHwnd, MainWindow.keyTeleport);
+                    Thread.Sleep(30);
+                    Hack.KeyUp(WindowHwnd, Keys.Down);
+                }
             }
         }
     }

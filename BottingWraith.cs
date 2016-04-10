@@ -11,6 +11,8 @@ namespace MapleRobots
         internal static void botting()//大幽靈
         {
             int counter = 0;
+            if (isOnRope() && getCharacterX() != -92)
+                RopeExiting(true);
             //training start
             while (true)
             {

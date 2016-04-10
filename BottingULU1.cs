@@ -39,6 +39,8 @@ namespace MapleRobots
         {
             int counter = 0;
             Thread.Sleep(500);
+            if (isOnRope() && getCharacterX() != 869)
+                RopeExiting(true);
             //training start
             while (true)
             {

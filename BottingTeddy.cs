@@ -11,6 +11,8 @@ namespace MapleRobots
         internal static void botting()//發條熊
         {
             int CharacterX, CharacterY, counter = 0;
+            if (isOnRope() && getCharacterX() != -320)
+                RopeExiting(true);
             //training start
             while (true)
             {

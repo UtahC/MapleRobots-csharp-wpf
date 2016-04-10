@@ -21,6 +21,8 @@ namespace MapleRobots
         static void training1hit()
         {
             int counter = 0;
+            if (isOnRope() && getCharacterX() != 294)
+                RopeExiting(true);
             //training start
             while (true)
             {
@@ -73,6 +75,8 @@ namespace MapleRobots
         static void training2hit()
         {
             int counter = 0;
+            if (isOnRope() && getCharacterX() != 294)
+                RopeExiting(true);
             //training start
             while (true)
             {

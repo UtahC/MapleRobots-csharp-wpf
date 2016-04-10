@@ -17,6 +17,7 @@ using System.Data.SqlClient;
 using System.Collections.Generic;
 using System.Media;
 using System.Reflection;
+using System.Data;
 
 namespace MapleRobots
 {
@@ -80,17 +81,20 @@ namespace MapleRobots
         internal static IntPtr WindowHwnd { get; set; }
         internal static bool isBind { get; set; }
 
-        internal static int delayComboKey1, delayComboKey2, delaySkill1, delaySkill2, timeSkill1, timeSkill2, attackParam;
+        internal static int delayComboKey1, delayComboKey2, attackParam;
+        internal static int delaySkill1, delaySkill2, delaySkill3, delaySkill4, delaySkill5;
+        internal static int timeSkill1, timeSkill2, timeSkill3, timeSkill4, timeSkill5;
         internal static Keys keyTeleport, keyAttack, keyDoor, keyPickUp, keySkill, keyCombo1, keyCombo2, keyJump;
-        internal static Keys keyWantToPress, keySkill1, keySkill2;
+        internal static Keys keyWantToPress, keySkill1, keySkill2, keySkill3, keySkill4, keySkill5;
         internal static string InGameName;
         internal static WindowHotKey windowhotkey;
         internal static Process process;
         private String WindowTitle;
-        private Keys HpPotKey, MpPotKey, HotKeyAutoAttack, HotKeyBotting;
+        private Keys HpPotKey, MpPotKey, HotKeyAutoAttack, HotKeyBotting, HotKeyBossing;
         private Thread _threadOfKeyPresser, _threadOfBotting, _threadOfPickUp, _threadOfAlarmForPlayer;
-        private Thread _threadOfSkill1, _threadOfSkill2, _threadOfBossing, _threadOfSelling;
-        private int HpBelow, MpBelow, PlayerCountAlarm;
+        private Thread _threadOfSkill1, _threadOfSkill2, _threadOfSkill3, _threadOfSkill4, _threadOfSkill5;
+        private Thread _threadOfBossing, _threadOfSelling;
+        private int HpBelow, MpBelow, PlayerCountAlarm, TrialAvailable = 0;
         private string filename = "data.ini";
 
 
@@ -195,6 +199,17 @@ namespace MapleRobots
                             }
                             handled = true;
                             break;
+                        case HOTKEY_ID + 2:
+                            vkey = (((int)lParam >> 16) & 0xFFFF);
+                            if (vkey == (int)HotKeyBossing)
+                            {
+                                if ((bool)checkBox_Bossing.IsChecked)
+                                    checkBox_Bossing.IsChecked = false;
+                                else
+                                    checkBox_Bossing.IsChecked = true;
+                            }
+                            handled = true;
+                            break;
                     }
                     break;
             }
@@ -223,12 +238,22 @@ namespace MapleRobots
             Hack.KeyUp(WindowHwnd, Keys.Right);
             WritePrivateProfileString(InGameName, "KeyAutoAttack", textBox_KeyAutoAttack.Text, ".\\" + filename);
             WritePrivateProfileString(InGameName, "HotKeyAutoAttack", textBox_HotKeyAutoAttack.Text, ".\\" + filename);
+            WritePrivateProfileString(InGameName, "HotKeyBossing", textBox_HotKeyBossing.Text, ".\\" + filename);
             WritePrivateProfileString(InGameName, "KeySkill1", textBox_KeySkill1.Text, ".\\" + filename);
             WritePrivateProfileString(InGameName, "Skill1Delay", textBox_SkillDelay1.Text, ".\\" + filename);
             WritePrivateProfileString(InGameName, "Skill1Time", textBox_SkillTime1.Text, ".\\" + filename);
             WritePrivateProfileString(InGameName, "KeySkill2", textBox_KeySkill2.Text, ".\\" + filename);
             WritePrivateProfileString(InGameName, "Skill2Delay", textBox_SkillDelay2.Text, ".\\" + filename);
             WritePrivateProfileString(InGameName, "Skill2Time", textBox_SkillTime2.Text, ".\\" + filename);
+            WritePrivateProfileString(InGameName, "KeySkill3", textBox_KeySkill3.Text, ".\\" + filename);
+            WritePrivateProfileString(InGameName, "Skill3Delay", textBox_SkillDelay3.Text, ".\\" + filename);
+            WritePrivateProfileString(InGameName, "Skill3Time", textBox_SkillTime3.Text, ".\\" + filename);
+            WritePrivateProfileString(InGameName, "KeySkill4", textBox_KeySkill4.Text, ".\\" + filename);
+            WritePrivateProfileString(InGameName, "Skill4Delay", textBox_SkillDelay4.Text, ".\\" + filename);
+            WritePrivateProfileString(InGameName, "Skill4Time", textBox_SkillTime4.Text, ".\\" + filename);
+            WritePrivateProfileString(InGameName, "KeySkill5", textBox_KeySkill5.Text, ".\\" + filename);
+            WritePrivateProfileString(InGameName, "Skill5Delay", textBox_SkillDelay5.Text, ".\\" + filename);
+            WritePrivateProfileString(InGameName, "Skill5Time", textBox_SkillTime5.Text, ".\\" + filename);
             WritePrivateProfileString(InGameName, "HotKeyBotting", textBox_HotKeyBotting.Text, ".\\" + filename);
             WritePrivateProfileString(InGameName, "HpValue", textBox_HpValue.Text, ".\\" + filename);
             WritePrivateProfileString(InGameName, "HotKeyHp", textBox_HotKeyHp.Text, ".\\" + filename);
@@ -238,6 +263,7 @@ namespace MapleRobots
             _source.RemoveHook(HwndHook);
             UnregisterHotKey(_windowHandle, HOTKEY_ID);
             UnregisterHotKey(_windowHandle, HOTKEY_ID + 1);
+            UnregisterHotKey(_windowHandle, HOTKEY_ID + 2);
             base.OnClosed(e);
         }
 
@@ -247,6 +273,14 @@ namespace MapleRobots
             textBox_HotKeyAutoAttack.Text = HotKeyAutoAttack.ToString();
             //UnregisterHotKey(_windowHandle, HOTKEY_ID);
             RegisterHotKey(_windowHandle, HOTKEY_ID, MOD_NONE, (uint)HotKeyAutoAttack);
+        }
+
+        private void textBox_HotKeyBossing_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            HotKeyBossing = (Keys)KeyInterop.VirtualKeyFromKey(e.Key);
+            textBox_HotKeyBossing.Text = HotKeyBossing.ToString();
+            //UnregisterHotKey(_windowHandle, HOTKEY_ID);
+            RegisterHotKey(_windowHandle, HOTKEY_ID + 2, MOD_NONE, (uint)HotKeyBossing);
         }
 
         private void textBox_KeyAutoAttack_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
@@ -274,6 +308,24 @@ namespace MapleRobots
         {
             keySkill2 = (Keys)KeyInterop.VirtualKeyFromKey(e.Key);
             textBox_KeySkill2.Text = keySkill2.ToString();
+        }
+
+        private void textBox_KeySkill3_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            keySkill3 = (Keys)KeyInterop.VirtualKeyFromKey(e.Key);
+            textBox_KeySkill3.Text = keySkill3.ToString();
+        }
+
+        private void textBox_KeySkill4_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            keySkill4 = (Keys)KeyInterop.VirtualKeyFromKey(e.Key);
+            textBox_KeySkill4.Text = keySkill4.ToString();
+        }
+
+        private void textBox_KeySkill5_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            keySkill5 = (Keys)KeyInterop.VirtualKeyFromKey(e.Key);
+            textBox_KeySkill5.Text = keySkill5.ToString();
         }
 
         private void textBox_SkillDelay1_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
@@ -310,6 +362,57 @@ namespace MapleRobots
             }
         }
 
+        private void textBox_SkillDelay3_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            if (textBox_SkillDelay3.Text == "延遲" || textBox_SkillDelay3.Text == "")
+                return;
+            else
+            {
+                try
+                {
+                    delaySkill3 = int.Parse(textBox_SkillDelay3.Text);
+                }
+                catch
+                {
+                    Hack.ShowMessageBox("請輸入數字");
+                }
+            }
+        }
+
+        private void textBox_SkillDelay4_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            if (textBox_SkillDelay4.Text == "延遲" || textBox_SkillDelay4.Text == "")
+                return;
+            else
+            {
+                try
+                {
+                    delaySkill4 = int.Parse(textBox_SkillDelay4.Text);
+                }
+                catch
+                {
+                    Hack.ShowMessageBox("請輸入數字");
+                }
+            }
+        }
+
+        private void textBox_SkillDelay5_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            if (textBox_SkillDelay5.Text == "延遲" || textBox_SkillDelay5.Text == "")
+                return;
+            else
+            {
+                try
+                {
+                    delaySkill5 = int.Parse(textBox_SkillDelay5.Text);
+                }
+                catch
+                {
+                    Hack.ShowMessageBox("請輸入數字");
+                }
+            }
+        }
+
         private void textBox_SkillTime1_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
             if (textBox_SkillTime1.Text == "秒/次" || textBox_SkillTime1.Text == "")
@@ -336,6 +439,57 @@ namespace MapleRobots
                 try
                 {
                     timeSkill2 = int.Parse(textBox_SkillTime2.Text);
+                }
+                catch
+                {
+                    Hack.ShowMessageBox("請輸入數字");
+                }
+            }
+        }
+
+        private void textBox_SkillTime3_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            if (textBox_SkillTime3.Text == "秒/次" || textBox_SkillTime3.Text == "")
+                return;
+            else
+            {
+                try
+                {
+                    timeSkill3 = int.Parse(textBox_SkillTime3.Text);
+                }
+                catch
+                {
+                    Hack.ShowMessageBox("請輸入數字");
+                }
+            }
+        }
+
+        private void textBox_SkillTime4_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            if (textBox_SkillTime4.Text == "秒/次" || textBox_SkillTime4.Text == "")
+                return;
+            else
+            {
+                try
+                {
+                    timeSkill4 = int.Parse(textBox_SkillTime4.Text);
+                }
+                catch
+                {
+                    Hack.ShowMessageBox("請輸入數字");
+                }
+            }
+        }
+
+        private void textBox_SkillTime5_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            if (textBox_SkillTime5.Text == "秒/次" || textBox_SkillTime5.Text == "")
+                return;
+            else
+            {
+                try
+                {
+                    timeSkill5 = int.Parse(textBox_SkillTime5.Text);
                 }
                 catch
                 {
@@ -380,6 +534,60 @@ namespace MapleRobots
             }
         }
 
+        private void checkBox_PressKeySkill3_Checked(object sender, RoutedEventArgs e)
+        {
+            if (_threadOfSkill3 == null)
+            {
+                _threadOfSkill3 = new Thread(AutoKey.Skill3);
+                _threadOfSkill3.Start();
+            }
+        }
+
+        private void checkBox_PressKeySkill3_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (_threadOfSkill3 != null)
+            {
+                _threadOfSkill3.Abort();
+                _threadOfSkill3 = null;
+            }
+        }
+
+        private void checkBox_PressKeySkill4_Checked(object sender, RoutedEventArgs e)
+        {
+            if (_threadOfSkill4 == null)
+            {
+                _threadOfSkill4 = new Thread(AutoKey.Skill4);
+                _threadOfSkill4.Start();
+            }
+        }
+
+        private void checkBox_PressKeySkill4_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (_threadOfSkill4 != null)
+            {
+                _threadOfSkill4.Abort();
+                _threadOfSkill4 = null;
+            }
+        }
+
+        private void checkBox_PressKeySkill5_Checked(object sender, RoutedEventArgs e)
+        {
+            if (_threadOfSkill5 == null)
+            {
+                _threadOfSkill5 = new Thread(AutoKey.Skill5);
+                _threadOfSkill5.Start();
+            }
+        }
+
+        private void checkBox_PressKeySkill5_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (_threadOfSkill5 != null)
+            {
+                _threadOfSkill5.Abort();
+                _threadOfSkill5 = null;
+            }
+        }
+
         private void button_Selling_Click(object sender, RoutedEventArgs e)
         {
             _threadOfSelling = new Thread(Store.selling);
@@ -410,6 +618,42 @@ namespace MapleRobots
                 textBox_SkillDelay1.Text = "";
         }
 
+        private void textBox_SkillDelay3_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (textBox_SkillDelay3.Text == "")
+                textBox_SkillDelay3.Text = "延遲";
+        }
+
+        private void textBox_SkillDelay3_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (textBox_SkillDelay3.Text == "延遲")
+                textBox_SkillDelay3.Text = "";
+        }
+
+        private void textBox_SkillDelay4_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (textBox_SkillDelay4.Text == "")
+                textBox_SkillDelay4.Text = "延遲";
+        }
+
+        private void textBox_SkillDelay4_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (textBox_SkillDelay4.Text == "延遲")
+                textBox_SkillDelay4.Text = "";
+        }
+
+        private void textBox_SkillDelay5_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (textBox_SkillDelay5.Text == "")
+                textBox_SkillDelay5.Text = "延遲";
+        }
+
+        private void textBox_SkillDelay5_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (textBox_SkillDelay5.Text == "延遲")
+                textBox_SkillDelay5.Text = "";
+        }
+
         private void textBox_SkillTime1_LostFocus(object sender, RoutedEventArgs e)
         {
             if (textBox_SkillTime1.Text == "")
@@ -428,10 +672,206 @@ namespace MapleRobots
                 textBox_SkillTime2.Text = "秒/次";
         }
 
+        private void button_Referees_Click(object sender, RoutedEventArgs e)
+        {
+            DialogResult result = Hack.ShowMessageBoxYesNo("推薦人將會獲得30分鐘額度，確定你的推薦人UID是 '" + textBox_Referees.Text + "' 嗎?(不可修改)");
+            if (result == System.Windows.Forms.DialogResult.Yes)
+            {
+                int referees = 0;
+                int.TryParse(textBox_Referees.Text, out referees);
+                using (var conn = new SqlConnection("Server=tcp:mssql02.qsh.eu,1481;Database=db1012457-maplerobots;User ID=db1012457-maplerobots;Password=753951;Encrypt=False;TrustServerCertificate=True;Connection Timeout=30;"))
+                {
+                    var cmd = conn.CreateCommand();
+                    NetworkInterface[] nics = NetworkInterface.GetAllNetworkInterfaces();
+                    List<string> macList = new List<string>();
+                    foreach (var nic in nics)
+                    {
+                        // 因為電腦中可能有很多的網卡(包含虛擬的網卡)，
+                        // 我只需要 Ethernet 網卡的 MAC
+                        if (nic.NetworkInterfaceType == NetworkInterfaceType.Ethernet)
+                        {
+                            macList.Add(nic.GetPhysicalAddress().ToString());
+                        }
+                    }
+                    try
+                    {
+                        conn.Open();
+                    }
+                    catch
+                    {
+                        Hack.ShowMessageBox("無法連接伺服器");
+                        this.Close();
+                    }
+                    try
+                    {
+                        cmd.CommandText = @"
+                        SELECT Id
+                        FROM dbo.RobotsUser
+                        WHERE MAC = @MAC;";
+                        cmd.Parameters.AddWithValue("@MAC", macList[0].ToString());
+                        int UserID = (int)cmd.ExecuteScalar();
+                        if (referees == UserID)
+                        {
+                            Hack.ShowMessageBox("推薦人不可以是自己");
+                            return;
+                        }
+                        cmd.CommandText = @"
+                        SELECT Point
+                        FROM dbo.RobotsUser
+                        WHERE Id = @Referees;
+                        UPDATE dbo.RobotsUser
+                        SET Referees = @Referees
+                        WHERE MAC = @MAC;";
+                        cmd.Parameters.AddWithValue("@Referees", referees);
+                        int Referees_Point = (int)cmd.ExecuteScalar();
+                        cmd.CommandText = @"
+                        UPDATE dbo.RobotsUser
+                        SET Point = @Referees_Point, RefereesCount = RefereesCount + 1
+                        WHERE Id = @Referees;";
+                        cmd.Parameters.AddWithValue("@Referees_Point", Referees_Point + 180);
+                        cmd.ExecuteScalar();
+
+                        textBox_Referees.IsEnabled = false;
+                        button_Referees.IsEnabled = false;
+                    }
+                    catch
+                    {
+                        Hack.ShowMessageBox("查無此ID");
+                    }
+                }
+            }
+        }
+
         private void textBox_SkillTime2_GotFocus(object sender, RoutedEventArgs e)
         {
             if (textBox_SkillTime2.Text == "秒/次")
                 textBox_SkillTime2.Text = "";
+        }
+
+        private void button_Trial_Click(object sender, RoutedEventArgs e)
+        {
+            DialogResult result;
+            result = Hack.ShowMessageBoxYesNo("確定現在要試用嗎?(每人只能試用一次)");
+            if (result == System.Windows.Forms.DialogResult.Yes)
+            {
+                using (var conn = new SqlConnection("Server=tcp:mssql02.qsh.eu,1481;Database=db1012457-maplerobots;User ID=db1012457-maplerobots;Password=753951;Encrypt=False;TrustServerCertificate=True;Connection Timeout=30;"))
+                {
+                    int id = -1;
+                    int referees = -1;
+                    int point = 0;
+                    bool isTrialAvailable = false;
+                    var cmd = conn.CreateCommand();
+                    string localMAC = Hack.getMacAddress();
+                    string localIP = Hack.getIPAddress();
+                    try
+                    {
+                        conn.Open();
+                    }
+                    catch
+                    {
+                        Hack.ShowMessageBox("無法連接伺服器");
+                        Close();
+                    }
+                    try
+                    {
+                        cmd.CommandText = @"
+                        SELECT Id, Referees, Point, TrialAvailable
+                        FROM dbo.RobotsUser
+                        WHERE MAC = @MAC;";
+                        cmd.Parameters.AddWithValue("@MAC", localMAC);
+                        //using (SqlDataReader sdr = cmd.ExecuteReader(CommandBehavior.SingleRow))
+                        using (SqlDataReader sdr = cmd.ExecuteReader())
+                        {
+                            if (sdr.Read())
+                            {
+                                id = (int)sdr.GetSqlInt32(0);
+                                referees = (int)sdr.GetSqlInt32(1);
+                                point = (int)sdr.GetSqlInt32(2);
+                                isTrialAvailable = sdr.GetBoolean(3);
+                                //this.TextBox1.Text = "號碼: " + dr.GetSqlInt32(0).Value + " 名稱: " + dr.GetSqlString(1).Value;
+                            }
+                        }
+                        if (!isTrialAvailable)
+                        {
+                            Hack.ShowMessageBox("你已經試用過了");
+                            return;
+                        }
+                        cmd.CommandText = @"
+                        UPDATE dbo.RobotsUser
+                        SET TrialAvailable = @notAble, Point = @Point
+                        WHERE Id = @Id;
+                        SELECT Point
+                        FROM dbo.RobotsUser
+                        WHERE Id = @Id;";
+                        cmd.Parameters.AddWithValue("@notAble", 0);
+                        cmd.Parameters.AddWithValue("@Id", id);
+                        cmd.Parameters.AddWithValue("@Point", point + 180);
+                        point = (int)cmd.ExecuteScalar();
+                        labelPoint.Content = "剩餘: " + (point / 6 / 60) + "時 " + (point / 6 % 60) + "分";
+                        if (point > 0)
+                        {
+                            checkBox_Botting.IsEnabled = true;
+                            textBox_HotKeyBotting.IsEnabled = true;
+                            button_keySetting.IsEnabled = true;
+                            comboBox_BottingCase.IsEnabled = true;
+                            checkBox_PlayerAlarm.IsEnabled = true;
+                            textBox_PlayerAlarm.IsEnabled = true;
+                            button_Selling.IsEnabled = true;
+                            checkBox_PickUp.IsEnabled = true;
+                            button_Trial.IsEnabled = false;
+                        }
+                    }
+                    catch
+                    {
+                        Hack.ShowMessageBox("無法取得資料");
+                    }
+                }
+            }
+        }
+
+        private void textBox_Referees_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (((int)e.Key < (int)Key.D0) || (((int)e.Key > (int)Key.D9) && ((int)e.Key < (int)Key.NumPad0)) || ((int)e.Key > (int)Key.NumPad9))
+            {
+                e.Handled = true;
+                Hack.ShowMessageBox("請輸入數字");
+            }
+        }
+
+        private void textBox_SkillTime3_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (textBox_SkillTime3.Text == "")
+                textBox_SkillTime3.Text = "秒/次";
+        }
+
+        private void textBox_SkillTime3_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (textBox_SkillTime3.Text == "秒/次")
+                textBox_SkillTime3.Text = "";
+        }
+
+        private void textBox_SkillTime4_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (textBox_SkillTime4.Text == "")
+                textBox_SkillTime4.Text = "秒/次";
+        }
+
+        private void textBox_SkillTime4_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (textBox_SkillTime4.Text == "秒/次")
+                textBox_SkillTime4.Text = "";
+        }
+
+        private void textBox_SkillTime5_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (textBox_SkillTime5.Text == "")
+                textBox_SkillTime5.Text = "秒/次";
+        }
+
+        private void textBox_SkillTime5_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (textBox_SkillTime5.Text == "秒/次")
+                textBox_SkillTime5.Text = "";
         }
 
         private void checkBox_Bossing_Checked(object sender, RoutedEventArgs e)
@@ -479,10 +919,10 @@ namespace MapleRobots
             data.Add("籃水靈");
             data.Add("黑肥肥");
             data.Add("發條熊");
-            data.Add("小幽靈");
-            data.Add("進化妖魔");
-            data.Add("妖魔隊長");
-            data.Add("大幽靈");
+            data.Add("小幽靈(一號線)");
+            data.Add("進化妖魔(時間之路)");
+            data.Add("妖魔隊長(時間之路)");
+            data.Add("大幽靈(一號線)");
             data.Add("GS1");
             data.Add("GS5");
             data.Add("GS2");
@@ -540,7 +980,8 @@ namespace MapleRobots
                     ign = ign.Replace("\0", "");
                     if (ign == "")
                         ign = "-未登入-";
-                    data.Add(ign);
+                    else
+                        data.Add(ign);
                     
                     counter++;
                 }
@@ -556,8 +997,8 @@ namespace MapleRobots
                         ign = ign.Replace("\0", "");
                         if (ign == "")
                             ign = "-未登入-";
-                        data.Add(ign);
-                        data.Add(ign);
+                        else
+                            data.Add(ign);
                     }
 
                 }
@@ -730,13 +1171,13 @@ namespace MapleRobots
                             _threadOfBotting = new Thread(BottingWildBoar.botting);
                         else if (comboBox_BottingCase.SelectedItem.ToString() == "發條熊")
                             _threadOfBotting = new Thread(BottingTeddy.botting);
-                        else if (comboBox_BottingCase.SelectedItem.ToString() == "小幽靈")
+                        else if (comboBox_BottingCase.SelectedItem.ToString() == "小幽靈(一號線)")
                             _threadOfBotting = new Thread(BottingJrWraith.botting);
-                        else if (comboBox_BottingCase.SelectedItem.ToString() == "進化妖魔")
+                        else if (comboBox_BottingCase.SelectedItem.ToString() == "進化妖魔(時間之路)")
                             _threadOfBotting = new Thread(BottingPlattonChronos.botting);
-                        else if (comboBox_BottingCase.SelectedItem.ToString() == "妖魔隊長")
+                        else if (comboBox_BottingCase.SelectedItem.ToString() == "妖魔隊長(時間之路)")
                             _threadOfBotting = new Thread(BottingMasterChronos.botting);
-                        else if (comboBox_BottingCase.SelectedItem.ToString() == "大幽靈")
+                        else if (comboBox_BottingCase.SelectedItem.ToString() == "大幽靈(一號線)")
                             _threadOfBotting = new Thread(BottingWraith.botting);
                         else if (comboBox_BottingCase.SelectedItem.ToString() == "GS1")
                             _threadOfBotting = new Thread(BottingGhostShip1.botting);
@@ -778,7 +1219,7 @@ namespace MapleRobots
                 else
                 {
                     int point = getPointFromDB(InGameName, 0);
-                    labelPoint.Content = "點數: " + point;
+                    labelPoint.Content = "剩餘: " + (point / 6 / 60) + "時 " + (point / 6 % 60) + "分";
                     Hack.ShowMessageBox("點數不足");
                     checkBox_Botting.IsChecked = false;
                     checkBox_Botting.IsEnabled = false;
@@ -835,8 +1276,6 @@ namespace MapleRobots
                     if (Hack.ReadInt(process, MpValueBaseAdr, MpValueOffset) < MpBelow)
                         Hack.KeyPress((IntPtr)WindowHwnd, MpPotKey);
             }
-            if ((bool)checkBox_NoBreath.IsChecked)
-                Hack.WriteInt(process, BreathBaseAdr, BreathOffset, 0);
             if ((bool)checkBox_Botting.IsChecked)
             {
                 if (!checkMap(comboBox_BottingCase.SelectedItem.ToString()))
@@ -882,7 +1321,7 @@ namespace MapleRobots
         {
             //Hack.ShowMessageBox("start");
             int point = getPointFromDB(InGameName, -1);
-            labelPoint.Content = "點數: " + point;
+            labelPoint.Content = "剩餘: " + (point / 6 / 60) + "時 " + (point / 6 % 60) + "分";
             if (point <= 0)
             {
                 checkBox_Botting.IsChecked = false;
@@ -904,33 +1343,117 @@ namespace MapleRobots
             timer3.Stop();
         }
 
+        private bool getInitialValueFromDB(string IGN, out int id, out int referees, out int point, out bool isTrialAvailable)
+        {
+            using (var conn = new SqlConnection("Server=tcp:mssql02.qsh.eu,1481;Database=db1012457-maplerobots;User ID=db1012457-maplerobots;Password=753951;Encrypt=False;TrustServerCertificate=True;Connection Timeout=30;"))
+            {
+                id = -1;
+                referees = -1;
+                point = 0;
+                isTrialAvailable = false;
+                var cmd = conn.CreateCommand();
+                string localMAC = Hack.getMacAddress();
+                string localIP = Hack.getIPAddress();
+                try
+                {
+                    conn.Open();
+                }
+                catch
+                {
+                    Hack.ShowMessageBox("無法連接伺服器");
+                    Close();
+                }
+                try
+                {
+                    cmd.CommandText = @"
+                    SELECT Id, Referees, Point, TrialAvailable
+                    FROM dbo.RobotsUser
+                    WHERE MAC = @MAC;
+                    INSERT INTO dbo.RobotsLogin (InGameName, Time, MAC, IP, Version)
+                    VALUES (@InGameName, CURRENT_TIMESTAMP, @MAC, @IP, @Version);";
+                    cmd.Parameters.AddWithValue("@InGameName", InGameName);
+                    cmd.Parameters.AddWithValue("@MAC", localMAC);
+                    cmd.Parameters.AddWithValue("@IP", localIP);
+                    cmd.Parameters.AddWithValue("@Version", programVersion.ToString());
+                    cmd.Parameters.AddWithValue("@Point", 0);
+                    cmd.Parameters.AddWithValue("@Referees", referees);
+                    cmd.Parameters.AddWithValue("@TrialAvailable", TrialAvailable);
+                    //using (SqlDataReader sdr = cmd.ExecuteReader(CommandBehavior.SingleRow))
+                    using (SqlDataReader sdr = cmd.ExecuteReader())
+                    {
+                        if (sdr.Read())
+                        {
+                            id = (int)sdr.GetSqlInt32(0);
+                            referees = (int)sdr.GetSqlInt32(1);
+                            point = (int)sdr.GetSqlInt32(2);
+                            isTrialAvailable = sdr.GetBoolean(3);
+                            //this.TextBox1.Text = "號碼: " + dr.GetSqlInt32(0).Value + " 名稱: " + dr.GetSqlString(1).Value;
+                            return true;
+                        }
+                    }
+                }
+                catch
+                {
+                    try
+                    {
+                        cmd.CommandText = @"
+                        SELECT Referees
+                        FROM dbo.RobotsUser
+                        WHERE InGameName = @InGameName;";
+                        referees = (int)cmd.ExecuteScalar();
+                        cmd.CommandText = @"
+                        INSERT INTO dbo.RobotsUser (InGameName, Point, LastestTime, MAC, Referees, TrialAvailable)
+                        OUTPUT INSERTED.Id, INSERTED.Referees, INSERTED.Point, INSERTED.TrialAvailable
+                        VALUES (@InGameName, @Point, CURRENT_TIMESTAMP, @MAC, @Referees, @TrialAvailable);";
+                        
+
+                        using (SqlDataReader sdr = cmd.ExecuteReader())
+                        {
+                            if (sdr.Read())
+                            {
+                                id = (int)sdr.GetSqlInt32(0);
+                                referees = (int)sdr.GetSqlInt32(1);
+                                point = (int)sdr.GetSqlInt32(2);
+                                isTrialAvailable = sdr.GetBoolean(3);
+                                //this.TextBox1.Text = "號碼: " + dr.GetSqlInt32(0).Value + " 名稱: " + dr.GetSqlString(1).Value;
+                                return true;
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        TrialAvailable = 1;
+                        cmd.CommandText = @"
+                        INSERT INTO dbo.RobotsUser (InGameName, Point, LastestTime, MAC, Referees, TrialAvailable)
+                        OUTPUT INSERTED.Id, INSERTED.Referees, INSERTED.Point, INSERTED.TrialAvailable
+                        VALUES (@InGameName, @Point, CURRENT_TIMESTAMP, @MAC, @Referees, @TrialAvailable);";
+                        
+                        using (SqlDataReader sdr = cmd.ExecuteReader())
+                        {
+                            if (sdr.Read())
+                            {
+                                id = (int)sdr.GetSqlInt32(0);
+                                referees = (int)sdr.GetSqlInt32(1);
+                                point = (int)sdr.GetSqlInt32(2);
+                                isTrialAvailable = sdr.GetBoolean(3);
+                                //this.TextBox1.Text = "號碼: " + dr.GetSqlInt32(0).Value + " 名稱: " + dr.GetSqlString(1).Value;
+                                return true;
+                            }
+                        }
+                    }
+                }
+                return false;
+            }
+        }
+
         private int getPointFromDB (string IGN, int deltaPoint)
         {
             using (var conn = new SqlConnection("Server=tcp:mssql02.qsh.eu,1481;Database=db1012457-maplerobots;User ID=db1012457-maplerobots;Password=753951;Encrypt=False;TrustServerCertificate=True;Connection Timeout=30;"))
             {
                 int userPoint, updatedUserPoint;
                 var cmd = conn.CreateCommand();
-                NetworkInterface[] nics = NetworkInterface.GetAllNetworkInterfaces();
-                List<string> macList = new List<string>();
-                foreach (var nic in nics)
-                {
-                    // 因為電腦中可能有很多的網卡(包含虛擬的網卡)，
-                    // 我只需要 Ethernet 網卡的 MAC
-                    if (nic.NetworkInterfaceType == NetworkInterfaceType.Ethernet)
-                    {
-                        macList.Add(nic.GetPhysicalAddress().ToString());
-                    }
-                }
-                IPHostEntry host;
-                string localIP = "";
-                host = Dns.GetHostEntry(Dns.GetHostName());
-                foreach (IPAddress ip in host.AddressList)
-                {
-                    if (ip.AddressFamily == AddressFamily.InterNetwork)
-                    {
-                        localIP = ip.ToString();
-                    }
-                }
+                string localMAC = Hack.getMacAddress();
+                string localIP = Hack.getIPAddress();
                 try
                 {
                     conn.Open();
@@ -946,7 +1469,7 @@ namespace MapleRobots
                     SELECT Point
                     FROM dbo.RobotsUser
                     WHERE MAC = @MAC;";
-                    cmd.Parameters.AddWithValue("@MAC", macList[0].ToString());
+                    cmd.Parameters.AddWithValue("@MAC", localMAC);
                     cmd.Parameters.AddWithValue("@InGameName", IGN);
                     cmd.Parameters.AddWithValue("@DeltaPoint", deltaPoint);
                     cmd.Parameters.AddWithValue("@IP", localIP);
@@ -1014,33 +1537,14 @@ namespace MapleRobots
                 return updatedUserPoint;
             }
         }
-
+        
         private bool checkBanned()
         {
             using (var conn = new SqlConnection("Server=tcp:mssql02.qsh.eu,1481;Database=db1012457-maplerobots;User ID=db1012457-maplerobots;Password=753951;Encrypt=False;TrustServerCertificate=True;Connection Timeout=30;"))
             {
                 var cmd = conn.CreateCommand();
-                NetworkInterface[] nics = NetworkInterface.GetAllNetworkInterfaces();
-                List<string> macList = new List<string>();
-                foreach (var nic in nics)
-                {
-                    // 因為電腦中可能有很多的網卡(包含虛擬的網卡)，
-                    // 我只需要 Ethernet 網卡的 MAC
-                    if (nic.NetworkInterfaceType == NetworkInterfaceType.Ethernet)
-                    {
-                        macList.Add(nic.GetPhysicalAddress().ToString());
-                    }
-                }
-                IPHostEntry host;
-                string localIP = "";
-                host = Dns.GetHostEntry(Dns.GetHostName());
-                foreach (IPAddress ip in host.AddressList)
-                {
-                    if (ip.AddressFamily == AddressFamily.InterNetwork)
-                    {
-                        localIP = ip.ToString();
-                    }
-                }
+                string localMAC = Hack.getMacAddress();
+                string localIP = Hack.getIPAddress();
                 conn.Open();
                 //Hack.ShowMessageBox("ign = \"" + InGameName + "\"");
                 //Hack.ShowMessageBox("ip = \"" + localIP + "\"");
@@ -1059,7 +1563,7 @@ namespace MapleRobots
                         SELECT MAC
                         FROM dbo.RobotsBannedUser
                         WHERE MAC = @MAC;";
-                        cmd.Parameters.AddWithValue("@MAC", macList[0].ToString());
+                        cmd.Parameters.AddWithValue("@MAC", localMAC);
                         temp = (string)cmd.ExecuteScalar();
                         if (temp == null)
                         {
@@ -1084,7 +1588,7 @@ namespace MapleRobots
                         SELECT MAC
                         FROM dbo.RobotsBannedUser
                         WHERE MAC = @MAC;";
-                        cmd.Parameters.AddWithValue("@MAC", macList[0].ToString());
+                        cmd.Parameters.AddWithValue("@MAC", localMAC);
                         string temp = (string)cmd.ExecuteScalar();
                     }
                     catch
@@ -1135,7 +1639,7 @@ namespace MapleRobots
 
             if (checkBanned())//檢查是否被BAN
             {
-                System.Windows.MessageBox.Show("伺服器拒絕存取");
+                Hack.ShowMessageBox("伺服器拒絕存取");
                 Close();
                 return;
             }
@@ -1174,7 +1678,40 @@ namespace MapleRobots
 
                     textBox_SkillTime2.Text = Hack.iniReader(".\\" + filename, InGameName,
                       "Skill2Time", true, "秒/次", out key);
-                    int.TryParse(textBox_SkillTime2.Text, out timeSkill1);
+                    int.TryParse(textBox_SkillTime2.Text, out timeSkill2);
+
+                    textBox_KeySkill3.Text = Hack.iniReader(".\\" + filename, InGameName,
+                      "KeySkill3", false, "技能熱鍵", out keySkill3);
+
+                    textBox_SkillDelay3.Text = Hack.iniReader(".\\" + filename, InGameName,
+                      "Skill3Delay", true, "延遲", out key);
+                    int.TryParse(textBox_SkillDelay3.Text, out delaySkill3);
+
+                    textBox_SkillTime3.Text = Hack.iniReader(".\\" + filename, InGameName,
+                      "Skill3Time", true, "秒/次", out key);
+                    int.TryParse(textBox_SkillTime3.Text, out timeSkill3);
+
+                    textBox_KeySkill4.Text = Hack.iniReader(".\\" + filename, InGameName,
+                      "KeySkill4", false, "技能熱鍵", out keySkill4);
+
+                    textBox_SkillDelay4.Text = Hack.iniReader(".\\" + filename, InGameName,
+                      "Skill4Delay", true, "延遲", out key);
+                    int.TryParse(textBox_SkillDelay4.Text, out delaySkill4);
+
+                    textBox_SkillTime4.Text = Hack.iniReader(".\\" + filename, InGameName,
+                      "Skill4Time", true, "秒/次", out key);
+                    int.TryParse(textBox_SkillTime4.Text, out timeSkill4);
+
+                    textBox_KeySkill5.Text = Hack.iniReader(".\\" + filename, InGameName,
+                      "KeySkill5", false, "技能熱鍵", out keySkill5);
+
+                    textBox_SkillDelay5.Text = Hack.iniReader(".\\" + filename, InGameName,
+                      "Skill5Delay", true, "延遲", out key);
+                    int.TryParse(textBox_SkillDelay5.Text, out delaySkill5);
+
+                    textBox_SkillTime5.Text = Hack.iniReader(".\\" + filename, InGameName,
+                      "Skill5Time", true, "秒/次", out key);
+                    int.TryParse(textBox_SkillTime5.Text, out timeSkill5);
 
                     textBox_HotKeyBotting.Text = Hack.iniReader(".\\" + filename, InGameName,
                       "HotKeyBotting", false, "開關熱鍵", out HotKeyBotting);
@@ -1197,6 +1734,10 @@ namespace MapleRobots
                     textBox_PlayerAlarm.Text = Hack.iniReader(".\\" + filename, InGameName,
                       "PlayerCountAlarm", true, "0", out key);
                     int.TryParse(textBox_PlayerAlarm.Text, out PlayerCountAlarm);
+
+                    textBox_HotKeyBossing.Text = Hack.iniReader(".\\" + filename, InGameName,
+                      "HotKeyBossing", false, "開關熱鍵", out HotKeyBossing);
+                    RegisterHotKey(_windowHandle, HOTKEY_ID + 2, MOD_NONE, (uint)HotKeyBossing);//註冊熱鍵
 
                     Hack.iniReader(".\\" + filename, InGameName, "KeyTeleport", false, "", out keyTeleport);
                     Hack.iniReader(".\\" + filename, InGameName, "KeyPickUp", false, "", out keyPickUp);
@@ -1239,7 +1780,6 @@ namespace MapleRobots
             checkBox_PressKey.IsEnabled = true;
             checkBox_UnlimitedAttack.IsEnabled = true;
             checkBox_Potions.IsEnabled = true;
-            checkBox_NoBreath.IsEnabled = true;
             checkBox_PressKeySkill1.IsEnabled = true;
             textBox_KeySkill1.IsEnabled = true;
             textBox_SkillDelay1.IsEnabled = true;
@@ -1248,13 +1788,46 @@ namespace MapleRobots
             textBox_KeySkill2.IsEnabled = true;
             textBox_SkillDelay2.IsEnabled = true;
             textBox_SkillTime2.IsEnabled = true;
+            checkBox_PressKeySkill3.IsEnabled = true;
+            textBox_KeySkill3.IsEnabled = true;
+            textBox_SkillDelay3.IsEnabled = true;
+            textBox_SkillTime3.IsEnabled = true;
+            checkBox_PressKeySkill4.IsEnabled = true;
+            textBox_KeySkill4.IsEnabled = true;
+            textBox_SkillDelay4.IsEnabled = true;
+            textBox_SkillTime4.IsEnabled = true;
+            checkBox_PressKeySkill5.IsEnabled = true;
+            textBox_KeySkill5.IsEnabled = true;
+            textBox_SkillDelay5.IsEnabled = true;
+            textBox_SkillTime5.IsEnabled = true;
             checkBox_Bossing.IsEnabled = true;
             radioButton_BossingFaceBoth.IsEnabled = true;
             radioButton_BossingFaceLeft.IsEnabled = true;
             radioButton_BossingFaceRight.IsEnabled = true;
-
-            int point = getPointFromDB(InGameName, 0);
-            labelPoint.Content = "點數: " + point;
+            tabControl.IsEnabled = true;
+            textBox_HotKeyBossing.IsEnabled = true;
+            int id, referees, point;
+            bool isTrialAvailable = false;
+            if (!getInitialValueFromDB(InGameName, out id, out referees, out point, out isTrialAvailable))
+            {
+                Hack.ShowMessageBox("無法取得資料..");
+                Close();
+            }
+            if (isTrialAvailable)
+                button_Trial.IsEnabled = true;
+            label_ID.Content = "你的UID: " + id;
+            if (referees < 0)
+            {
+                textBox_Referees.IsReadOnly = false;
+                textBox_Referees.IsEnabled = true;
+                button_Referees.IsEnabled = true;
+            }
+            else
+            {
+                textBox_Referees.Text = referees.ToString();
+                button_Referees.IsEnabled = false;
+            }
+            labelPoint.Content = "剩餘: " + (point / 6 / 60) + "時 " + (point / 6 % 60) + "分";
             if (point > 0)
             {
                 checkBox_Botting.IsEnabled = true;
@@ -1309,28 +1882,28 @@ namespace MapleRobots
                 else
                     return true;
             }
-            else if (comboBox_BottingCase.SelectedItem.ToString() == "小幽靈")
+            else if (comboBox_BottingCase.SelectedItem.ToString() == "小幽靈(一號線)")
             {
                 if (mapID != 103000103)
                     return false;
                 else
                     return true;
             }
-            else if (comboBox_BottingCase.SelectedItem.ToString() == "進化妖魔")
+            else if (comboBox_BottingCase.SelectedItem.ToString() == "進化妖魔(時間之路)")
             {
                 if (mapID != 220040000)
                     return false;
                 else
                     return true;
             }
-            else if (comboBox_BottingCase.SelectedItem.ToString() == "妖魔隊長")
+            else if (comboBox_BottingCase.SelectedItem.ToString() == "妖魔隊長(時間之路)")
             {
                 if (mapID != 220040400)
                     return false;
                 else
                     return true;
             }
-            else if (comboBox_BottingCase.SelectedItem.ToString() == "大幽靈")
+            else if (comboBox_BottingCase.SelectedItem.ToString() == "大幽靈(一號線)")
             {
                 if (mapID != 103000105)
                     return false;

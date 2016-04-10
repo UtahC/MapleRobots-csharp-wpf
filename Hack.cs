@@ -10,6 +10,8 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Net;
+using System.Net.NetworkInformation;
 
 namespace MapleRobots
 {
@@ -304,6 +306,12 @@ namespace MapleRobots
             PostMessage(hwnd, WM_KEYUP, (IntPtr)keyCode, MakeKeyLparam(keyCode, WM_KEYUP));
             //SendMessage(hwnd, WM_KEYUP, (IntPtr)keyCode, IntPtr.Zero);
         }
+        public static void KeyPressFront(IntPtr hwnd, Keys key)
+        {
+            keybd_event((byte)key, 0, 0, 0);
+            Thread.Sleep(1);
+            keybd_event((byte)key, 0, 2, 0);
+        }
         public static void KeyDown(IntPtr hwnd, Keys key)
         {
             if (key.ToString() == "Up" || key.ToString() == "Down" || key.ToString() == "Left" || key.ToString() == "Right")
@@ -437,6 +445,12 @@ namespace MapleRobots
             MessageBox.Show(text, "系統提示", MessageBoxButtons.OK, MessageBoxIcon.Warning,
                  MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
         }
+        public static DialogResult ShowMessageBoxYesNo(string text)
+        {
+            DialogResult result = MessageBox.Show(text, "系統提示", MessageBoxButtons.YesNo, MessageBoxIcon.Warning,
+                 MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
+            return result;
+        }
         public static string iniReader (string file, string sectionName, string keyName, bool isNumOnly, 
           string defaultValue, out Keys key)
         {
@@ -460,6 +474,79 @@ namespace MapleRobots
                 key = Keys.None;
                 return defaultValue;
             }
+        }
+        static bool IsPrivateIP(IPAddress myIPAddress)
+        {
+            if (myIPAddress.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+            {
+                byte[] ipBytes = myIPAddress.GetAddressBytes();
+
+                // 10.0.0.0/24 
+                if (ipBytes[0] == 10)
+                {
+                    return true;
+                }
+                // 172.16.0.0/16
+                else if (ipBytes[0] == 172 && ipBytes[1] == 16)
+                {
+                    return true;
+                }
+                // 192.168.0.0/16
+                else if (ipBytes[0] == 192 && ipBytes[1] == 168)
+                {
+                    return true;
+                }
+                // 169.254.0.0/16
+                else if (ipBytes[0] == 169 && ipBytes[1] == 254)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        public static string getIPAddress ()
+        {
+            IPHostEntry myIPHostEntry = Dns.GetHostEntry(Dns.GetHostName());
+
+            foreach (IPAddress myIPAddress in myIPHostEntry.AddressList)
+            {
+                byte[] ipBytes = myIPAddress.GetAddressBytes();
+
+                if (myIPAddress.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                {
+                    if (!IsPrivateIP(myIPAddress))
+                    {
+                        return myIPAddress.ToString();
+                    }
+                }
+            }
+            return "";
+        }
+        public static string getMacAddress()
+        {
+            const int MIN_MAC_ADDR_LENGTH = 12;
+            string macAddress = string.Empty;
+            long maxSpeed = -1;
+
+            foreach (NetworkInterface nic in NetworkInterface.GetAllNetworkInterfaces())
+            {
+                /*log.Debug(
+                    "Found MAC Address: " + nic.GetPhysicalAddress() +
+                    " Type: " + nic.NetworkInterfaceType);*/
+
+                string tempMac = nic.GetPhysicalAddress().ToString();
+                if (nic.Speed > maxSpeed &&
+                    !string.IsNullOrEmpty(tempMac) &&
+                    tempMac.Length >= MIN_MAC_ADDR_LENGTH)
+                {
+                    //log.Debug("New Max Speed = " + nic.Speed + ", MAC: " + tempMac);
+                    maxSpeed = nic.Speed;
+                    macAddress = tempMac;
+                }
+            }
+
+            return macAddress;
         }
         /*
         static public bool FindPic(IntPtr hwnd, string path, int X1, int Y1, int X2, int Y2,

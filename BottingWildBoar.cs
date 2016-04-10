@@ -11,6 +11,8 @@ namespace MapleRobots
         internal static void botting()//黑肥肥
         {
             int counter = 0;
+            if (isOnRope() && getCharacterX() != 834)
+                RopeExiting(true);
             //training start
             while (true)
             {

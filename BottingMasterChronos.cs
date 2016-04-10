@@ -34,13 +34,16 @@ namespace MapleRobots
         {
             int counter = 0;
             Thread.Sleep(500);
+            if (isOnRope() && getCharacterX() != -604)
+                RopeExiting(true);
             //training start
             while (true)
             {
                 if (counter % 8 == 0)
                 {
                     //go to position start
-                    GoToFloor(4);
+                    if (getCharacterX() != -604)
+                        GoToFloor(4);
                     RopeClimbing(-604, false, 826, 1032, 60, 60);
                     //go to position end
                     AutoKey.mre_PickUp.Reset();
@@ -56,7 +59,8 @@ namespace MapleRobots
                 else if (counter % 4 == 0)
                 {
                     //go to position start
-                    GoToFloor(4);
+                    if (getCharacterX() != -604)
+                        GoToFloor(4);
                     RopeClimbing(-604, false, 826, 1032, 60, 60);
                     //go to position end
                     AutoKey.mre_PickUp.Reset();
