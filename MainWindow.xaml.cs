@@ -37,7 +37,7 @@ namespace MapleRobots
         private static extern int GetWindowText(int hWnd, StringBuilder title, int size);
 
         Version programVersion;
-        bool isOldVersion = false;
+        bool isOldVersion = false, autoUpdated = true;
 
         private const int HOTKEY_ID = 9000;
 
@@ -96,7 +96,6 @@ namespace MapleRobots
         private Thread _threadOfBossing, _threadOfSelling;
         private int HpBelow, MpBelow, PlayerCountAlarm, TrialAvailable = 0;
         private string filename = "data.ini";
-
 
         private ManualResetEvent mre_AlarmForPlayer = new ManualResetEvent(true);
         System.Windows.Forms.Timer timer2 = new System.Windows.Forms.Timer();
@@ -748,6 +747,11 @@ namespace MapleRobots
                 textBox_SkillTime2.Text = "";
         }
 
+        private void label_Page_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            Process.Start("https://www.facebook.com/MapleRobots/");
+        }
+
         private void button_Trial_Click(object sender, RoutedEventArgs e)
         {
             DialogResult result;
@@ -903,10 +907,10 @@ namespace MapleRobots
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-
             if (isOldVersion)
             {
-                Process.Start("MapleRobots.exe");
+                if (autoUpdated)
+                    Process.Start("MapleRobots.exe");
                 Close();
             }
         }
@@ -1376,8 +1380,7 @@ namespace MapleRobots
                     cmd.Parameters.AddWithValue("@IP", localIP);
                     cmd.Parameters.AddWithValue("@Version", programVersion.ToString());
                     cmd.Parameters.AddWithValue("@Point", 0);
-                    cmd.Parameters.AddWithValue("@Referees", referees);
-                    cmd.Parameters.AddWithValue("@TrialAvailable", TrialAvailable);
+                    
                     //using (SqlDataReader sdr = cmd.ExecuteReader(CommandBehavior.SingleRow))
                     using (SqlDataReader sdr = cmd.ExecuteReader())
                     {
@@ -1394,6 +1397,10 @@ namespace MapleRobots
                 }
                 catch
                 {
+                    Hack.ShowMessageBox("something wrong.");
+                }
+                if (id == -1)
+                {
                     try
                     {
                         cmd.CommandText = @"
@@ -1402,10 +1409,12 @@ namespace MapleRobots
                         WHERE InGameName = @InGameName;";
                         referees = (int)cmd.ExecuteScalar();
                         cmd.CommandText = @"
-                        INSERT INTO dbo.RobotsUser (InGameName, Point, LastestTime, MAC, Referees, TrialAvailable)
+                        INSERT INTO dbo.RobotsUser (InGameName, Point, LastestTime, MAC, Referees, TrialAvailable, RefereesCount)
                         OUTPUT INSERTED.Id, INSERTED.Referees, INSERTED.Point, INSERTED.TrialAvailable
-                        VALUES (@InGameName, @Point, CURRENT_TIMESTAMP, @MAC, @Referees, @TrialAvailable);";
-                        
+                        VALUES (@InGameName, @Point, CURRENT_TIMESTAMP, @MAC, @Referees, @TrialAvailable, @RefereesCount);";
+                        cmd.Parameters.AddWithValue("@Referees", referees);
+                        cmd.Parameters.AddWithValue("@TrialAvailable", TrialAvailable);
+                        cmd.Parameters.AddWithValue("@RefereesCount", 0);
 
                         using (SqlDataReader sdr = cmd.ExecuteReader())
                         {
@@ -1424,10 +1433,10 @@ namespace MapleRobots
                     {
                         TrialAvailable = 1;
                         cmd.CommandText = @"
-                        INSERT INTO dbo.RobotsUser (InGameName, Point, LastestTime, MAC, Referees, TrialAvailable)
+                        INSERT INTO dbo.RobotsUser (InGameName, Point, LastestTime, MAC, Referees, TrialAvailable, )
                         OUTPUT INSERTED.Id, INSERTED.Referees, INSERTED.Point, INSERTED.TrialAvailable
                         VALUES (@InGameName, @Point, CURRENT_TIMESTAMP, @MAC, @Referees, @TrialAvailable);";
-                        
+
                         using (SqlDataReader sdr = cmd.ExecuteReader())
                         {
                             if (sdr.Read())
@@ -1441,9 +1450,9 @@ namespace MapleRobots
                             }
                         }
                     }
-                }
-                return false;
+                } 
             }
+            return false;
         }
 
         private int getPointFromDB (string IGN, int deltaPoint)
@@ -1984,22 +1993,46 @@ namespace MapleRobots
         {
             //lbProgress.Content = "正在更新中..";
 
-            string UName = "anonymous", UPWord = "";
+            string UName = "user", UPWord = "user";
             FtpWebRequest ftpReq;
-            //宣告FTP連線
-            ftpReq = (FtpWebRequest)WebRequest.Create(new Uri("ftp://maplerobots.no-ip.org/MapleRoyals/MapleRobots.exe"));
-            //取得欲下載檔案的大小(位元)存至 fiesize
-            ftpReq.Method = WebRequestMethods.Ftp.GetFileSize;
-            //認證
-            ftpReq.Credentials = new NetworkCredential(UName, UPWord);
-            int filesize = (int)ftpReq.GetResponse().ContentLength;
-
-            //宣告FTP連線
-            ftpReq = (FtpWebRequest)WebRequest.Create(new Uri("ftp://maplerobots.no-ip.org/MapleRoyals/MapleRobots.exe"));
-            //下載
-            ftpReq.Method = WebRequestMethods.Ftp.DownloadFile;
-            //認證
-            ftpReq.Credentials = new NetworkCredential(UName, UPWord);
+            int filesize;
+            Uri utt = new Uri("ftp://www.utt.game.tw/MapleRoyals/MapleRobots.exe");
+            Debug.WriteLine(utt.Port);
+            try
+            {
+                //宣告FTP連線
+                ftpReq = (FtpWebRequest)WebRequest.Create(new Uri("ftp://www.utt.game.tw/MapleRoyals/MapleRobots.exe"));
+                //ftpReq.EnableSsl = true;
+                //取得欲下載檔案的大小(位元)存至 fiesize
+                ftpReq.Method = WebRequestMethods.Ftp.GetFileSize;
+                //認證
+                ftpReq.Credentials = new NetworkCredential(UName, UPWord);
+                filesize = (int)ftpReq.GetResponse().ContentLength;
+            }
+            catch
+            {
+                Hack.ShowMessageBox("自動更新失敗,請至粉絲專頁下載最新版");
+                Process.Start("https://www.facebook.com/MapleRobots/");
+                autoUpdated = false;
+                return;
+            }
+            try
+            {
+                //宣告FTP連線
+                ftpReq = (FtpWebRequest)WebRequest.Create(new Uri("ftp://www.utt.game.tw/MapleRoyals/MapleRobots.exe"));
+                //ftpReq.EnableSsl = true;
+                //下載
+                ftpReq.Method = WebRequestMethods.Ftp.DownloadFile;
+                //認證
+                ftpReq.Credentials = new NetworkCredential(UName, UPWord);
+            }
+            catch
+            {
+                Hack.ShowMessageBox("自動更新失敗,請至粉絲專頁下載最新版");
+                Process.Start("https://www.facebook.com/MapleRobots/");
+                autoUpdated = false;
+                return;
+            }
 
             //binaary
             ftpReq.UseBinary = true;
